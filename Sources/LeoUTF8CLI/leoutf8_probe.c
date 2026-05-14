@@ -62,6 +62,7 @@ static int print_mapped(const char *label,
 
 static int run_valid_checks(const unsigned char *sample)
 {
+    const unsigned char embeddedNul[] = { 'A', 0x00, 'B' };
     LeoUTF8Status status;
     size_t count;
 
@@ -78,6 +79,26 @@ static int run_valid_checks(const unsigned char *sample)
     }
 
     printf("codepoints: %lu\n", (unsigned long)count);
+
+    status = LeoUTF8ValidateBytes(embeddedNul, sizeof(embeddedNul));
+    if (expect_status("embedded NUL byte validation", status, LEO_UTF8_OK) != 0) {
+        return 1;
+    }
+
+    count = 0;
+    status = LeoUTF8CodepointCountBytes(embeddedNul, sizeof(embeddedNul), &count);
+    if (status != LEO_UTF8_OK) {
+        fprintf(stderr, "embedded NUL count failed: %s\n", LeoUTF8StatusMessage(status));
+        return 1;
+    }
+
+    printf("embedded NUL codepoints: %lu\n", (unsigned long)count);
+
+    if (count != 3) {
+        fprintf(stderr, "embedded NUL count failed: expected 3, got %lu\n",
+                (unsigned long)count);
+        return 1;
+    }
 
     if (print_mapped("NFC", LeoUTF8NormalizeNFC, sample) != 0) {
         return 1;

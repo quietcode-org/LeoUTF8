@@ -17,6 +17,39 @@ typedef enum LeoUTF8Status {
 const char *LeoUTF8Version(void);
 const char *LeoUTF8StatusMessage(LeoUTF8Status status);
 
+/*
+ * Byte-length based core API.
+ *
+ * These functions are the preferred LeoUTF8Core boundary API.
+ * Input may contain embedded NUL bytes.
+ */
+LeoUTF8Status LeoUTF8ValidateBytes(const unsigned char *bytes,
+                                   size_t length);
+
+LeoUTF8Status LeoUTF8CodepointCountBytes(const unsigned char *bytes,
+                                         size_t length,
+                                         size_t *count);
+
+LeoUTF8Status LeoUTF8NormalizeNFCBytes(const unsigned char *bytes,
+                                       size_t length,
+                                       unsigned char **out,
+                                       size_t *outLen);
+
+LeoUTF8Status LeoUTF8NormalizeNFDBytes(const unsigned char *bytes,
+                                       size_t length,
+                                       unsigned char **out,
+                                       size_t *outLen);
+
+LeoUTF8Status LeoUTF8CaseFoldBytes(const unsigned char *bytes,
+                                   size_t length,
+                                   unsigned char **out,
+                                   size_t *outLen);
+
+/*
+ * Null-terminated C-string convenience API.
+ *
+ * These functions are wrappers around the byte-length based API.
+ */
 LeoUTF8Status LeoUTF8Validate(const unsigned char *text);
 LeoUTF8Status LeoUTF8CodepointCount(const unsigned char *text, size_t *count);
 
