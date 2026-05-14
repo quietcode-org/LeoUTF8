@@ -46,7 +46,10 @@ int main(void)
     const unsigned char invalidUtf8[] = { 0xC3 };
 
     printf("LeoUTF8CoreFoundation probe\n");
-    printf("LeoUTF8 version: %s\n", LeoUTF8Version());
+    printf("LeoUTF8 engine version: %s\n", LeoUTF8Version());
+    printf("LeoUTF8 brick version: %s\n", LeoUTF8BrickVersionString());
+    printf("LeoUTF8 brick release: %s\n", LeoUTF8BrickReleaseName());
+    printf("LeoUTF8 brick target: %s\n", LeoUTF8BrickTargetPlatform());
 
     string = 0;
     status = LeoUTF8CreateCFStringFromBytes(sample, sizeof(sample) - 1, &string);

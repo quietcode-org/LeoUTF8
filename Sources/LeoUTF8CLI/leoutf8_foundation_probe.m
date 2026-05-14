@@ -50,7 +50,10 @@ int main(void)
     pool = [[NSAutoreleasePool alloc] init];
 
     printf("LeoUTF8Foundation probe\n");
-    printf("LeoUTF8 version: %s\n", LeoUTF8Version());
+    printf("LeoUTF8 engine version: %s\n", LeoUTF8Version());
+    printf("LeoUTF8 brick version: %s\n", LeoUTF8BrickVersionString());
+    printf("LeoUTF8 brick release: %s\n", LeoUTF8BrickReleaseName());
+    printf("LeoUTF8 brick target: %s\n", LeoUTF8BrickTargetPlatform());
 
     string = nil;
     status = LeoUTF8CreateNSStringFromBytes(sample, sizeof(sample) - 1, &string);
