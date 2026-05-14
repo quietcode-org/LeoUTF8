@@ -375,6 +375,8 @@ docs/
     LeoUTF8CoreFoundation.md
     LeoUTF8Foundation.md
     consuming-leoutf8.md
+  design/
+    LeoUTF8HFS.md
   findings/
     LEOUTF8-FIND-0001-utf8proc-leopard-ppc.md
   releases/
