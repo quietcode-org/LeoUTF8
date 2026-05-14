@@ -406,3 +406,31 @@ examples: $(CORE_EXAMPLE_BIN) $(COREFOUNDATION_EXAMPLE_BIN) $(FOUNDATION_EXAMPLE
 	$(COREFOUNDATION_EXAMPLE_BIN)
 	$(FOUNDATION_EXAMPLE_BIN)
 	@echo "LeoUTF8 examples completed successfully."
+
+# Local release archive for the hardened LeoUTF8 integration brick.
+RELEASE_VERSION = 0.7.0
+RELEASE_NAME = LeoUTF8-$(RELEASE_VERSION)-leopard-ppc
+RELEASE_ROOT = release
+RELEASE_DIR = $(RELEASE_ROOT)/$(RELEASE_NAME)
+RELEASE_ARCHIVE = $(RELEASE_ROOT)/$(RELEASE_NAME).tar.gz
+
+.PHONY: release
+
+release: examples
+	rm -rf $(RELEASE_DIR)
+	mkdir -p $(RELEASE_DIR)
+	mkdir -p $(RELEASE_DIR)/include
+	mkdir -p $(RELEASE_DIR)/lib
+	mkdir -p $(RELEASE_DIR)/docs
+	mkdir -p $(RELEASE_DIR)/Examples
+	mkdir -p $(RELEASE_DIR)/vendor-licenses
+	cp -p README.md $(RELEASE_DIR)/
+	cp -p dist/LeoUTF8/include/* $(RELEASE_DIR)/include/
+	cp -p dist/LeoUTF8/lib/* $(RELEASE_DIR)/lib/
+	cp -R docs/* $(RELEASE_DIR)/docs/
+	cp -R Examples/* $(RELEASE_DIR)/Examples/
+	cp -p vendor/utf8proc/LICENSE.md $(RELEASE_DIR)/vendor-licenses/utf8proc-LICENSE.md
+	rm -f $(RELEASE_ARCHIVE)
+	cd $(RELEASE_ROOT) && tar -czf $(RELEASE_NAME).tar.gz $(RELEASE_NAME)
+	@echo "LeoUTF8 release staged in $(RELEASE_DIR)"
+	@echo "LeoUTF8 release archive: $(RELEASE_ARCHIVE)"

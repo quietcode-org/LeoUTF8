@@ -63,3 +63,6 @@ build-work/
 
 # Local distribution staging
 dist/
+
+# Local release archives
+release/
