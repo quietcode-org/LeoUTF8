@@ -217,7 +217,10 @@ int main(void)
         "Stra" "\xC3" "\x9F" "e";
 
     printf("LeoUTF8 probe\n");
-    printf("LeoUTF8 version: %s\n", LeoUTF8Version());
+    printf("LeoUTF8 engine version: %s\n", LeoUTF8Version());
+    printf("LeoUTF8 brick version: %s\n", LeoUTF8BrickVersionString());
+    printf("LeoUTF8 brick release: %s\n", LeoUTF8BrickReleaseName());
+    printf("LeoUTF8 brick target: %s\n", LeoUTF8BrickTargetPlatform());
     printf("sample: %s\n", sample);
     print_hex(sample);
 

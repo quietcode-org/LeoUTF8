@@ -23,7 +23,10 @@ UTF8PROC_OBJ = $(UTF8PROC_BUILD)/utf8proc.o
 CORE_INC = Sources/LeoUTF8Core
 CORE_SRC = Sources/LeoUTF8Core/LeoUTF8.c
 CORE_HDR = Sources/LeoUTF8Core/LeoUTF8.h
+VERSION_SRC = Sources/LeoUTF8Core/LeoUTF8Version.c
+VERSION_HDR = Sources/LeoUTF8Core/LeoUTF8Version.h
 CORE_OBJ = $(BUILD_DIR)/LeoUTF8.o
+VERSION_OBJ = $(BUILD_DIR)/LeoUTF8Version.o
 CORE_LIB = $(BUILD_DIR)/libLeoUTF8Core.a
 
 COREFOUNDATION_INC = Sources/LeoUTF8CoreFoundation
@@ -113,9 +116,18 @@ $(CORE_OBJ): $(CORE_SRC) $(CORE_HDR) $(UTF8PROC_LIB) | $(BUILD_DIR)
 		-c $(CORE_SRC) \
 		-o $(CORE_OBJ)
 
-$(CORE_LIB): $(CORE_OBJ) $(UTF8PROC_LIB)
+$(VERSION_OBJ): $(VERSION_SRC) $(VERSION_HDR) | $(BUILD_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic -Werror \
+		-I $(CORE_INC) \
+		-c $(VERSION_SRC) \
+		-o $(VERSION_OBJ)
+
+$(CORE_LIB): $(CORE_OBJ) $(VERSION_OBJ) $(UTF8PROC_LIB)
 	rm -f $(CORE_LIB)
-	$(AR) crs $(CORE_LIB) $(CORE_OBJ) $(UTF8PROC_OBJ)
+	$(AR) crs $(CORE_LIB) $(CORE_OBJ) $(VERSION_OBJ) $(UTF8PROC_OBJ)
 
 $(COREFOUNDATION_OBJ): $(COREFOUNDATION_SRC) $(COREFOUNDATION_HDR) $(CORE_HDR) | $(BUILD_DIR)
 	$(CC) \
@@ -203,6 +215,7 @@ dist: libs
 	mkdir -p $(DIST_DIR)/include
 	mkdir -p $(DIST_DIR)/lib
 	cp -p $(CORE_HDR) $(DIST_DIR)/include/
+	cp -p $(VERSION_HDR) $(DIST_DIR)/include/
 	cp -p $(COREFOUNDATION_HDR) $(DIST_DIR)/include/
 	cp -p $(FOUNDATION_HDR) $(DIST_DIR)/include/
 	cp -p $(CORE_LIB) $(DIST_DIR)/lib/
@@ -324,6 +337,7 @@ install: libs
 	mkdir -p $(DESTDIR)$(PREFIX)/include
 	mkdir -p $(DESTDIR)$(PREFIX)/lib
 	cp -p $(CORE_HDR) $(DESTDIR)$(PREFIX)/include/
+	cp -p $(VERSION_HDR) $(DESTDIR)$(PREFIX)/include/
 	cp -p $(COREFOUNDATION_HDR) $(DESTDIR)$(PREFIX)/include/
 	cp -p $(FOUNDATION_HDR) $(DESTDIR)$(PREFIX)/include/
 	cp -p $(CORE_LIB) $(DESTDIR)$(PREFIX)/lib/

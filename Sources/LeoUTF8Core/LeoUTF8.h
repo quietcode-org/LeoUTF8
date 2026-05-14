@@ -1,6 +1,8 @@
 #ifndef LEO_UTF8_H
 #define LEO_UTF8_H
 
+#include "LeoUTF8Version.h"
+
 #include <stddef.h>
 
 #ifdef __cplusplus
