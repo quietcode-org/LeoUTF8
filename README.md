@@ -332,6 +332,35 @@ while both CFString and NSString case-insensitive comparison treat them as equal
 Therefore a future `LeoUTF8HFS` layer must not blindly use generic
 CFString/NSString comparison as HFS+ filename comparison policy.
 
+### `make hfsurlcheck`
+
+Checks the HFS+ filesystem boundary through CFURL and NSURL.
+
+The probe creates a filename with NFC UTF-8 input and observes the resulting
+filesystem representation through:
+
+- POSIX `readdir()`
+- `CFURLGetFileSystemRepresentation`
+- `NSURL path` followed by `NSString fileSystemRepresentation`
+
+Confirmed on Leopard/PPC:
+
+~~~text
+readdir filename bytes match LeoUTF8 NFD: yes
+CFURL filesystem filename bytes match LeoUTF8 NFD: yes
+NSURL filesystem filename bytes match LeoUTF8 NFD: yes
+~~~
+
+Important Leopard-specific finding:
+
+~~~text
+NSURL itself does not provide -fileSystemRepresentation on Leopard.
+Use NSURL -> path -> NSString fileSystemRepresentation.
+~~~
+
+Therefore a future `LeoUTF8HFS` or URL helper must treat CFURL, NSURL, NSString,
+and filesystem bytes as separate boundary layers.
+
 These probes do not define a final HFS+ filename API yet.
 
 They establish the measured boundary behavior that a future explicit
