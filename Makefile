@@ -53,6 +53,9 @@ FOUNDATION_PROBE_BIN = $(BUILD_DIR)/leoutf8_foundation_probe
 CONSUMER_CORE_SRC = Tests/consumer_core_probe.c
 CONSUMER_CORE_BIN = $(DISTCHECK_DIR)/consumer_core_probe
 
+CONSUMER_COREFOUNDATION_SRC = Tests/consumer_corefoundation_probe.c
+CONSUMER_COREFOUNDATION_BIN = $(DISTCHECK_DIR)/consumer_corefoundation_probe
+
 CONSUMER_FOUNDATION_SRC = Tests/consumer_foundation_probe.m
 CONSUMER_FOUNDATION_BIN = $(DISTCHECK_DIR)/consumer_foundation_probe
 
@@ -205,6 +208,18 @@ $(CONSUMER_CORE_BIN): dist $(CONSUMER_CORE_SRC) | $(DISTCHECK_DIR)
 		$(DIST_DIR)/lib/libLeoUTF8Core.a \
 		-o $(CONSUMER_CORE_BIN)
 
+$(CONSUMER_COREFOUNDATION_BIN): dist $(CONSUMER_COREFOUNDATION_SRC) | $(DISTCHECK_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-I $(DIST_DIR)/include \
+		$(CONSUMER_COREFOUNDATION_SRC) \
+		$(DIST_DIR)/lib/libLeoUTF8CoreFoundation.a \
+		$(DIST_DIR)/lib/libLeoUTF8Core.a \
+		-framework CoreFoundation \
+		-o $(CONSUMER_COREFOUNDATION_BIN)
+
 $(CONSUMER_FOUNDATION_BIN): dist $(CONSUMER_FOUNDATION_SRC) | $(DISTCHECK_DIR)
 	$(CC) \
 		$(COMMON_FLAGS) \
@@ -216,8 +231,9 @@ $(CONSUMER_FOUNDATION_BIN): dist $(CONSUMER_FOUNDATION_SRC) | $(DISTCHECK_DIR)
 		-framework Foundation \
 		-o $(CONSUMER_FOUNDATION_BIN)
 
-distcheck: $(CONSUMER_CORE_BIN) $(CONSUMER_FOUNDATION_BIN)
+distcheck: $(CONSUMER_CORE_BIN) $(CONSUMER_COREFOUNDATION_BIN) $(CONSUMER_FOUNDATION_BIN)
 	$(CONSUMER_CORE_BIN)
+	$(CONSUMER_COREFOUNDATION_BIN)
 	$(CONSUMER_FOUNDATION_BIN)
 	@echo "LeoUTF8 distcheck completed successfully."
 
