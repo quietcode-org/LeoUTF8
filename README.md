@@ -30,6 +30,7 @@ Confirmed on real Mac OS X 10.5.8 PowerPC hardware:
 - UTF-8 `NSData` creation from `NSString` works
 - internal probes build and run on Leopard/PPC
 - external consumer probes build and run against `dist/LeoUTF8`
+- external examples build and run against `dist/LeoUTF8`
 - public LeoUTF8 brick version metadata is available
 - engine version and brick version are reported separately
 
@@ -226,6 +227,28 @@ consumer foundation probe passed
 LeoUTF8 distcheck completed successfully.
 ```
 
+## Examples
+
+LeoUTF8 includes external consumer examples:
+
+~~~sh
+make examples
+~~~
+
+The examples build against the staged `dist/LeoUTF8` output, not private source paths.
+
+They demonstrate:
+
+- Core C usage
+- CoreFoundation usage
+- Foundation usage
+
+See:
+
+~~~text
+docs/examples/LeoUTF8Examples.md
+~~~
+
 ## Distribution Layout
 
 `make dist` creates:
@@ -399,6 +422,14 @@ They establish the measured boundary behavior that a future explicit
 ## Repository Layout
 
 ```text
+Examples/
+  Core/
+    leoutf8_core_example.c
+  CoreFoundation/
+    leoutf8_corefoundation_example.c
+  Foundation/
+    leoutf8_foundation_example.m
+
 docs/
   api/
     LeoUTF8Core.md
@@ -408,6 +439,8 @@ docs/
     consuming-leoutf8.md
   design/
     LeoUTF8HFS.md
+  examples/
+    LeoUTF8Examples.md
   findings/
     LEOUTF8-FIND-0001-utf8proc-leopard-ppc.md
   releases/
