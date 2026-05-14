@@ -1,5 +1,5 @@
 # LeoUTF8 Leopard/PPC Makefile.
-# Builds LeoUTF8Core, LeoUTF8Foundation, and the current probe tools.
+# Builds LeoUTF8Core, LeoUTF8Foundation, and probe tools.
 #
 # This Makefile is intentionally small and Leopard-friendly.
 # It does not modify vendor/ sources.
@@ -12,16 +12,19 @@ BUILD_DIR = build-work
 
 UTF8PROC_BUILD = $(BUILD_DIR)/utf8proc
 UTF8PROC_LIB = $(UTF8PROC_BUILD)/libutf8proc.a
+UTF8PROC_OBJ = $(UTF8PROC_BUILD)/utf8proc.o
 
 CORE_INC = Sources/LeoUTF8Core
 CORE_SRC = Sources/LeoUTF8Core/LeoUTF8.c
 CORE_HDR = Sources/LeoUTF8Core/LeoUTF8.h
 CORE_OBJ = $(BUILD_DIR)/LeoUTF8.o
+CORE_LIB = $(BUILD_DIR)/libLeoUTF8Core.a
 
 FOUNDATION_INC = Sources/LeoUTF8Foundation
 FOUNDATION_SRC = Sources/LeoUTF8Foundation/LeoUTF8Foundation.m
 FOUNDATION_HDR = Sources/LeoUTF8Foundation/LeoUTF8Foundation.h
 FOUNDATION_OBJ = $(BUILD_DIR)/LeoUTF8Foundation.o
+FOUNDATION_LIB = $(BUILD_DIR)/libLeoUTF8Foundation.a
 
 C_PROBE_SRC = Sources/LeoUTF8CLI/leoutf8_probe.c
 C_PROBE_OBJ = $(BUILD_DIR)/leoutf8_probe.o
@@ -31,11 +34,15 @@ FOUNDATION_PROBE_SRC = Sources/LeoUTF8CLI/leoutf8_foundation_probe.m
 FOUNDATION_PROBE_OBJ = $(BUILD_DIR)/leoutf8_foundation_probe.o
 FOUNDATION_PROBE_BIN = $(BUILD_DIR)/leoutf8_foundation_probe
 
-.PHONY: all check clean utf8proc
+.PHONY: all libs probes check clean utf8proc
 
-all: $(C_PROBE_BIN) $(FOUNDATION_PROBE_BIN)
+all: libs probes
 
-check: all
+libs: $(CORE_LIB) $(FOUNDATION_LIB)
+
+probes: $(C_PROBE_BIN) $(FOUNDATION_PROBE_BIN)
+
+check: probes
 	$(C_PROBE_BIN)
 	$(FOUNDATION_PROBE_BIN)
 
@@ -65,15 +72,22 @@ $(CORE_OBJ): $(CORE_SRC) $(CORE_HDR) $(UTF8PROC_LIB) | $(BUILD_DIR)
 		-c $(CORE_SRC) \
 		-o $(CORE_OBJ)
 
-$(FOUNDATION_OBJ): $(FOUNDATION_SRC) $(FOUNDATION_HDR) $(CORE_HDR) $(UTF8PROC_LIB) | $(BUILD_DIR)
+$(CORE_LIB): $(CORE_OBJ) $(UTF8PROC_LIB)
+	rm -f $(CORE_LIB)
+	$(AR) crs $(CORE_LIB) $(CORE_OBJ) $(UTF8PROC_OBJ)
+
+$(FOUNDATION_OBJ): $(FOUNDATION_SRC) $(FOUNDATION_HDR) $(CORE_HDR) | $(BUILD_DIR)
 	$(CC) \
 		$(COMMON_FLAGS) \
 		-Wall -Wextra -Werror \
 		-I $(CORE_INC) \
 		-I $(FOUNDATION_INC) \
-		-isystem $(UTF8PROC_BUILD) \
 		-c $(FOUNDATION_SRC) \
 		-o $(FOUNDATION_OBJ)
+
+$(FOUNDATION_LIB): $(FOUNDATION_OBJ)
+	rm -f $(FOUNDATION_LIB)
+	$(AR) crs $(FOUNDATION_LIB) $(FOUNDATION_OBJ)
 
 $(C_PROBE_OBJ): $(C_PROBE_SRC) $(CORE_HDR) $(UTF8PROC_LIB) | $(BUILD_DIR)
 	$(CC) \
@@ -85,31 +99,28 @@ $(C_PROBE_OBJ): $(C_PROBE_SRC) $(CORE_HDR) $(UTF8PROC_LIB) | $(BUILD_DIR)
 		-c $(C_PROBE_SRC) \
 		-o $(C_PROBE_OBJ)
 
-$(C_PROBE_BIN): $(CORE_OBJ) $(C_PROBE_OBJ) $(UTF8PROC_LIB)
+$(C_PROBE_BIN): $(C_PROBE_OBJ) $(CORE_LIB)
 	$(CC) \
 		-arch ppc -mmacosx-version-min=10.5 \
-		$(CORE_OBJ) \
 		$(C_PROBE_OBJ) \
-		$(UTF8PROC_LIB) \
+		$(CORE_LIB) \
 		-o $(C_PROBE_BIN)
 
-$(FOUNDATION_PROBE_OBJ): $(FOUNDATION_PROBE_SRC) $(FOUNDATION_HDR) $(CORE_HDR) $(UTF8PROC_LIB) | $(BUILD_DIR)
+$(FOUNDATION_PROBE_OBJ): $(FOUNDATION_PROBE_SRC) $(FOUNDATION_HDR) $(CORE_HDR) | $(BUILD_DIR)
 	$(CC) \
 		$(COMMON_FLAGS) \
 		-Wall -Wextra \
 		-I $(CORE_INC) \
 		-I $(FOUNDATION_INC) \
-		-isystem $(UTF8PROC_BUILD) \
 		-c $(FOUNDATION_PROBE_SRC) \
 		-o $(FOUNDATION_PROBE_OBJ)
 
-$(FOUNDATION_PROBE_BIN): $(CORE_OBJ) $(FOUNDATION_OBJ) $(FOUNDATION_PROBE_OBJ) $(UTF8PROC_LIB)
+$(FOUNDATION_PROBE_BIN): $(FOUNDATION_PROBE_OBJ) $(FOUNDATION_LIB) $(CORE_LIB)
 	$(CC) \
 		-arch ppc -mmacosx-version-min=10.5 \
-		$(CORE_OBJ) \
-		$(FOUNDATION_OBJ) \
 		$(FOUNDATION_PROBE_OBJ) \
-		$(UTF8PROC_LIB) \
+		$(FOUNDATION_LIB) \
+		$(CORE_LIB) \
 		-framework Foundation \
 		-o $(FOUNDATION_PROBE_BIN)
 
