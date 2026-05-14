@@ -60,3 +60,6 @@ build-work/
 *.a
 *.dylib
 .DS_Store
+
+# Local distribution staging
+dist/

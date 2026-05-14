@@ -1,5 +1,5 @@
 # LeoUTF8 Leopard/PPC Makefile.
-# Builds LeoUTF8Core, LeoUTF8Foundation, and probe tools.
+# Builds LeoUTF8Core, LeoUTF8Foundation, probe tools, and reusable artifacts.
 #
 # This Makefile is intentionally small and Leopard-friendly.
 # It does not modify vendor/ sources.
@@ -7,8 +7,12 @@
 CC = /usr/bin/gcc
 AR = /usr/bin/ar
 
+PREFIX = /usr/local
+DESTDIR =
+
 COMMON_FLAGS = -Os -arch ppc -mmacosx-version-min=10.5
 BUILD_DIR = build-work
+DIST_DIR = dist/LeoUTF8
 
 UTF8PROC_BUILD = $(BUILD_DIR)/utf8proc
 UTF8PROC_LIB = $(UTF8PROC_BUILD)/libutf8proc.a
@@ -34,7 +38,7 @@ FOUNDATION_PROBE_SRC = Sources/LeoUTF8CLI/leoutf8_foundation_probe.m
 FOUNDATION_PROBE_OBJ = $(BUILD_DIR)/leoutf8_foundation_probe.o
 FOUNDATION_PROBE_BIN = $(BUILD_DIR)/leoutf8_foundation_probe
 
-.PHONY: all libs probes check clean utf8proc
+.PHONY: all libs probes check clean dist distclean install utf8proc
 
 all: libs probes
 
@@ -124,5 +128,27 @@ $(FOUNDATION_PROBE_BIN): $(FOUNDATION_PROBE_OBJ) $(FOUNDATION_LIB) $(CORE_LIB)
 		-framework Foundation \
 		-o $(FOUNDATION_PROBE_BIN)
 
+dist: libs
+	rm -rf $(DIST_DIR)
+	mkdir -p $(DIST_DIR)/include
+	mkdir -p $(DIST_DIR)/lib
+	cp -p $(CORE_HDR) $(DIST_DIR)/include/
+	cp -p $(FOUNDATION_HDR) $(DIST_DIR)/include/
+	cp -p $(CORE_LIB) $(DIST_DIR)/lib/
+	cp -p $(FOUNDATION_LIB) $(DIST_DIR)/lib/
+	@echo "LeoUTF8 distribution staged in $(DIST_DIR)"
+
+install: libs
+	mkdir -p $(DESTDIR)$(PREFIX)/include
+	mkdir -p $(DESTDIR)$(PREFIX)/lib
+	cp -p $(CORE_HDR) $(DESTDIR)$(PREFIX)/include/
+	cp -p $(FOUNDATION_HDR) $(DESTDIR)$(PREFIX)/include/
+	cp -p $(CORE_LIB) $(DESTDIR)$(PREFIX)/lib/
+	cp -p $(FOUNDATION_LIB) $(DESTDIR)$(PREFIX)/lib/
+	@echo "LeoUTF8 installed into $(DESTDIR)$(PREFIX)"
+
 clean:
 	rm -rf $(BUILD_DIR)
+
+distclean: clean
+	rm -rf dist
