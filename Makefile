@@ -434,3 +434,25 @@ release: examples
 	cd $(RELEASE_ROOT) && tar -czf $(RELEASE_NAME).tar.gz $(RELEASE_NAME)
 	@echo "LeoUTF8 release staged in $(RELEASE_DIR)"
 	@echo "LeoUTF8 release archive: $(RELEASE_ARCHIVE)"
+
+# Apple HeaderDoc API documentation for public LeoUTF8 headers.
+HEADERDOC_TOOL = /usr/bin/headerdoc2html
+HEADERDOC_GATHER = /usr/bin/gatherheaderdoc
+HEADERDOC_OUTPUT = $(BUILD_DIR)/headerdoc
+
+PUBLIC_HEADERS = \
+	$(CORE_HDR) \
+	$(VERSION_HDR) \
+	$(COREFOUNDATION_HDR) \
+	$(FOUNDATION_HDR)
+
+.PHONY: apidocs
+
+apidocs:
+	@test -x $(HEADERDOC_TOOL) || { echo "Missing $(HEADERDOC_TOOL)"; exit 1; }
+	@test -x $(HEADERDOC_GATHER) || { echo "Missing $(HEADERDOC_GATHER)"; exit 1; }
+	rm -rf $(HEADERDOC_OUTPUT)
+	mkdir -p $(HEADERDOC_OUTPUT)
+	$(HEADERDOC_TOOL) -o $(HEADERDOC_OUTPUT) $(PUBLIC_HEADERS)
+	$(HEADERDOC_GATHER) $(HEADERDOC_OUTPUT)
+	@echo "LeoUTF8 HeaderDoc output staged in $(HEADERDOC_OUTPUT)"
