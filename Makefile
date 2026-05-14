@@ -416,7 +416,7 @@ RELEASE_ARCHIVE = $(RELEASE_ROOT)/$(RELEASE_NAME).tar.gz
 
 .PHONY: release
 
-release: examples
+release: examples apidocs
 	rm -rf $(RELEASE_DIR)
 	mkdir -p $(RELEASE_DIR)
 	mkdir -p $(RELEASE_DIR)/include
@@ -428,6 +428,8 @@ release: examples
 	cp -p dist/LeoUTF8/include/* $(RELEASE_DIR)/include/
 	cp -p dist/LeoUTF8/lib/* $(RELEASE_DIR)/lib/
 	cp -R docs/* $(RELEASE_DIR)/docs/
+	mkdir -p $(RELEASE_DIR)/docs/headerdoc
+	cp -R $(HEADERDOC_OUTPUT)/* $(RELEASE_DIR)/docs/headerdoc/
 	cp -R Examples/* $(RELEASE_DIR)/Examples/
 	cp -p vendor/utf8proc/LICENSE.md $(RELEASE_DIR)/vendor-licenses/utf8proc-LICENSE.md
 	rm -f $(RELEASE_ARCHIVE)
