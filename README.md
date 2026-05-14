@@ -3,16 +3,16 @@
 LeoUTF8 is a Leopard-native UTF-8 boundary brick for Mac OS X 10.5.8 PowerPC.
 
 It provides a small, explicit bridge between UTF-8 byte buffers, C APIs,
-Foundation objects, and Leopard-native applications.
+CoreFoundation objects, Foundation objects, and Leopard-native applications.
 
-LeoUTF8 does not replace `NSString`, `CFString`, Foundation, or the Leopard text
-system. It complements them by making UTF-8 validation, normalization,
-case folding, and byte/string boundary handling available as a reusable system
-component.
+LeoUTF8 does not replace `NSString`, `CFString`, Foundation, CoreFoundation, or
+the Leopard text system. It complements them by making UTF-8 validation,
+normalization, case folding, and byte/string boundary handling available as a
+small reusable system component.
 
 ## Status
 
-LeoUTF8 is currently at an early but working V0 proof stage.
+LeoUTF8 is currently at a working Leopard/PPC proof stage.
 
 Confirmed on real Mac OS X 10.5.8 PowerPC hardware:
 
@@ -24,17 +24,21 @@ Confirmed on real Mac OS X 10.5.8 PowerPC hardware:
 - NFC normalization works
 - NFD normalization works
 - Unicode case folding works
+- `CFStringRef` creation from UTF-8 bytes works
+- UTF-8 `CFDataRef` creation from `CFStringRef` works
 - `NSString` creation from UTF-8 bytes works
 - UTF-8 `NSData` creation from `NSString` works
-- probes build and run on Leopard/PPC
+- internal probes build and run on Leopard/PPC
+- external consumer probes build and run against `dist/LeoUTF8`
 
 ## Architecture
 
 ```text
 vendor/utf8proc
   -> LeoUTF8Core
+  -> LeoUTF8CoreFoundation
   -> LeoUTF8Foundation
-  -> CLI probes / future Leopard-Crew tools
+  -> CLI probes / dist consumers / future Leopard-Crew tools
 ````
 
 ### LeoUTF8Core
@@ -69,9 +73,30 @@ Bytes remain bytes.
 UTF-8 is explicit.
 ```
 
+### LeoUTF8CoreFoundation
+
+`LeoUTF8CoreFoundation` is the CoreFoundation bridge layer.
+
+It provides:
+
+- UTF-8 byte buffer -> retained `CFStringRef`
+    
+- `CFStringRef` -> retained UTF-8 `CFDataRef`
+    
+- validation through `LeoUTF8Core` before malformed UTF-8 crosses into CoreFoundation
+    
+
+CoreFoundation doctrine:
+
+```text
+CFStringRef is native Leopard CoreFoundation text.
+CFDataRef is explicit UTF-8 transport.
+LeoUTF8Core guards the boundary.
+```
+
 ### LeoUTF8Foundation
 
-`LeoUTF8Foundation` is the Leopard Foundation bridge layer.
+`LeoUTF8Foundation` is the Foundation bridge layer.
 
 It provides:
 
@@ -102,6 +127,8 @@ LeoUTF8 is not:
     
 - a replacement for Foundation
     
+- a replacement for CoreFoundation
+    
 - a locale policy engine
     
 - a regex engine
@@ -115,8 +142,8 @@ UTF-8 transformations are explicit. Nothing is normalized silently.
 
 ## Why LeoUTF8 Exists
 
-Leopard already has strong native Unicode facilities through Foundation and  
-CoreFoundation.
+Leopard already has strong native Unicode facilities through CoreFoundation and  
+Foundation.
 
 The missing piece is a small, reusable boundary brick for Leopard-native tools  
 that need to move deliberately between:
@@ -131,6 +158,10 @@ that need to move deliberately between:
     
 - file/network buffers
     
+- `CFStringRef`
+    
+- `CFDataRef`
+    
 - `NSString`
     
 - `NSData`
@@ -140,37 +171,57 @@ that need to move deliberately between:
 
 LeoUTF8 defines that boundary explicitly.
 
-## Build Probe On Leopard/PPC
+## Build And Test On Leopard/PPC
 
 Run on Mac OS X 10.5.8 PowerPC:
 
 ```sh
 cd /Users/admin/Desktop/Projekte/LeoUTF8
-./tools/build_probe_leopard_ppc.sh
+
+make clean
+make
+make check
+make dist
+make distcheck
 ```
-
-The script:
-
-1. copies vendored `utf8proc` into `build-work`
-    
-2. builds `libutf8proc.a`
-    
-3. builds `LeoUTF8Core`
-    
-4. runs the C probe
-    
-5. builds `LeoUTF8Foundation`
-    
-6. runs the Foundation probe
-    
 
 Successful output includes:
 
 ```text
 LeoUTF8 probe passed.
+LeoUTF8CoreFoundation probe passed.
 LeoUTF8Foundation probe passed.
-LeoUTF8 Leopard/PPC probes completed successfully.
+consumer core probe passed
+consumer corefoundation probe passed
+consumer foundation probe passed
+LeoUTF8 distcheck completed successfully.
 ```
+
+## Distribution Layout
+
+`make dist` creates:
+
+```text
+dist/LeoUTF8/
+├── include/
+│   ├── LeoUTF8.h
+│   ├── LeoUTF8CoreFoundation.h
+│   └── LeoUTF8Foundation.h
+└── lib/
+    ├── libLeoUTF8Core.a
+    ├── libLeoUTF8CoreFoundation.a
+    └── libLeoUTF8Foundation.a
+```
+
+## Install Staging
+
+LeoUTF8 supports staged install testing:
+
+```sh
+make install DESTDIR="$PWD/build-work/install-test" PREFIX=/LeoUTF8
+```
+
+This does not write into the live system when `DESTDIR` is used.
 
 ## Repository Layout
 
@@ -178,9 +229,13 @@ LeoUTF8 Leopard/PPC probes completed successfully.
 docs/
   api/
     LeoUTF8Core.md
+    LeoUTF8CoreFoundation.md
     LeoUTF8Foundation.md
+    consuming-leoutf8.md
   findings/
     LEOUTF8-FIND-0001-utf8proc-leopard-ppc.md
+  releases/
+    LEOUTF8-V0.1.md
   architecture.md
   leopard-text-model.md
   scope-lock.md
@@ -190,12 +245,21 @@ Sources/
   LeoUTF8Core/
     LeoUTF8.h
     LeoUTF8.c
+  LeoUTF8CoreFoundation/
+    LeoUTF8CoreFoundation.h
+    LeoUTF8CoreFoundation.c
   LeoUTF8Foundation/
     LeoUTF8Foundation.h
     LeoUTF8Foundation.m
   LeoUTF8CLI/
     leoutf8_probe.c
+    leoutf8_corefoundation_probe.c
     leoutf8_foundation_probe.m
+
+Tests/
+  consumer_core_probe.c
+  consumer_corefoundation_probe.c
+  consumer_foundation_probe.m
 
 tools/
   build_probe_leopard_ppc.sh
