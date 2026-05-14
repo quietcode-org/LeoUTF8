@@ -118,6 +118,25 @@ NSData is explicit UTF-8 transport.
 LeoUTF8Core guards the boundary.
 ```
 
+## Cupertino 2009 Compliance
+
+LeoUTF8 follows the Leopard-Crew system-first rule:
+
+~~~text
+If the target system has a documented or system-typical rule,
+follow the system before project-local style.
+~~~
+
+For LeoUTF8 this affects public headers, ownership rules, Foundation and
+CoreFoundation behavior, HFS+ boundary handling, and release discipline.
+
+See:
+
+~~~text
+docs/hardening/Cupertino-2009-compliance.md
+docs/hardening/HeaderDoc-policy.md
+~~~
+
 ## Version Identity
 
 LeoUTF8 exposes two separate version concepts:
