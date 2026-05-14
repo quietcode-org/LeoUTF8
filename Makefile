@@ -350,3 +350,59 @@ clean:
 
 distclean: clean
 	rm -rf dist
+
+# External examples built against the staged dist/LeoUTF8 brick.
+EXAMPLES_BUILD_DIR = $(BUILD_DIR)/examples
+
+CORE_EXAMPLE_SRC = Examples/Core/leoutf8_core_example.c
+CORE_EXAMPLE_BIN = $(EXAMPLES_BUILD_DIR)/leoutf8_core_example
+
+COREFOUNDATION_EXAMPLE_SRC = Examples/CoreFoundation/leoutf8_corefoundation_example.c
+COREFOUNDATION_EXAMPLE_BIN = $(EXAMPLES_BUILD_DIR)/leoutf8_corefoundation_example
+
+FOUNDATION_EXAMPLE_SRC = Examples/Foundation/leoutf8_foundation_example.m
+FOUNDATION_EXAMPLE_BIN = $(EXAMPLES_BUILD_DIR)/leoutf8_foundation_example
+
+.PHONY: examples
+
+$(EXAMPLES_BUILD_DIR):
+	mkdir -p $(EXAMPLES_BUILD_DIR)
+
+$(CORE_EXAMPLE_BIN): dist $(CORE_EXAMPLE_SRC) | $(EXAMPLES_BUILD_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-I $(DIST_DIR)/include \
+		$(CORE_EXAMPLE_SRC) \
+		$(DIST_DIR)/lib/libLeoUTF8Core.a \
+		-o $(CORE_EXAMPLE_BIN)
+
+$(COREFOUNDATION_EXAMPLE_BIN): dist $(COREFOUNDATION_EXAMPLE_SRC) | $(EXAMPLES_BUILD_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-I $(DIST_DIR)/include \
+		$(COREFOUNDATION_EXAMPLE_SRC) \
+		$(DIST_DIR)/lib/libLeoUTF8CoreFoundation.a \
+		$(DIST_DIR)/lib/libLeoUTF8Core.a \
+		-framework CoreFoundation \
+		-o $(COREFOUNDATION_EXAMPLE_BIN)
+
+$(FOUNDATION_EXAMPLE_BIN): dist $(FOUNDATION_EXAMPLE_SRC) | $(EXAMPLES_BUILD_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-Wall -Wextra \
+		-I $(DIST_DIR)/include \
+		$(FOUNDATION_EXAMPLE_SRC) \
+		$(DIST_DIR)/lib/libLeoUTF8Foundation.a \
+		$(DIST_DIR)/lib/libLeoUTF8Core.a \
+		-framework Foundation \
+		-o $(FOUNDATION_EXAMPLE_BIN)
+
+examples: $(CORE_EXAMPLE_BIN) $(COREFOUNDATION_EXAMPLE_BIN) $(FOUNDATION_EXAMPLE_BIN)
+	$(CORE_EXAMPLE_BIN)
+	$(COREFOUNDATION_EXAMPLE_BIN)
+	$(FOUNDATION_EXAMPLE_BIN)
+	@echo "LeoUTF8 examples completed successfully."
