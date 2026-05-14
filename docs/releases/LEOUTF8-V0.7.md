@@ -55,11 +55,41 @@ dist/LeoUTF8/
     libLeoUTF8Foundation.a
 ~~~
 
+## HeaderDoc API Reference
+
+V0.7 adds Apple HeaderDoc generation for public headers:
+
+~~~sh
+make apidocs
+~~~
+
+Generated documentation is staged under:
+
+~~~text
+build-work/headerdoc
+~~~
+
+`make release` includes the generated HeaderDoc API reference under:
+
+~~~text
+docs/headerdoc
+~~~
+
+The public HeaderDoc set covers:
+
+~~~text
+LeoUTF8.h
+LeoUTF8Version.h
+LeoUTF8CoreFoundation.h
+LeoUTF8Foundation.h
+~~~
+
 ## Release Archive
 
 V0.7 adds local release archive creation:
 
 ~~~sh
+make apidocs
 make release
 ~~~
 
@@ -76,6 +106,7 @@ README.md
 include/
 lib/
 docs/
+docs/headerdoc/
 Examples/
 vendor-licenses/
 ~~~
@@ -110,6 +141,7 @@ make hfsboundarycheck
 make hfscasecheck
 make hfscomparecheck
 make hfsurlcheck
+make apidocs
 make release
 ~~~
 
