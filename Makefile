@@ -26,6 +26,12 @@ CORE_HDR = Sources/LeoUTF8Core/LeoUTF8.h
 CORE_OBJ = $(BUILD_DIR)/LeoUTF8.o
 CORE_LIB = $(BUILD_DIR)/libLeoUTF8Core.a
 
+COREFOUNDATION_INC = Sources/LeoUTF8CoreFoundation
+COREFOUNDATION_SRC = Sources/LeoUTF8CoreFoundation/LeoUTF8CoreFoundation.c
+COREFOUNDATION_HDR = Sources/LeoUTF8CoreFoundation/LeoUTF8CoreFoundation.h
+COREFOUNDATION_OBJ = $(BUILD_DIR)/LeoUTF8CoreFoundation.o
+COREFOUNDATION_LIB = $(BUILD_DIR)/libLeoUTF8CoreFoundation.a
+
 FOUNDATION_INC = Sources/LeoUTF8Foundation
 FOUNDATION_SRC = Sources/LeoUTF8Foundation/LeoUTF8Foundation.m
 FOUNDATION_HDR = Sources/LeoUTF8Foundation/LeoUTF8Foundation.h
@@ -35,6 +41,10 @@ FOUNDATION_LIB = $(BUILD_DIR)/libLeoUTF8Foundation.a
 C_PROBE_SRC = Sources/LeoUTF8CLI/leoutf8_probe.c
 C_PROBE_OBJ = $(BUILD_DIR)/leoutf8_probe.o
 C_PROBE_BIN = $(BUILD_DIR)/leoutf8_probe
+
+COREFOUNDATION_PROBE_SRC = Sources/LeoUTF8CLI/leoutf8_corefoundation_probe.c
+COREFOUNDATION_PROBE_OBJ = $(BUILD_DIR)/leoutf8_corefoundation_probe.o
+COREFOUNDATION_PROBE_BIN = $(BUILD_DIR)/leoutf8_corefoundation_probe
 
 FOUNDATION_PROBE_SRC = Sources/LeoUTF8CLI/leoutf8_foundation_probe.m
 FOUNDATION_PROBE_OBJ = $(BUILD_DIR)/leoutf8_foundation_probe.o
@@ -50,12 +60,13 @@ CONSUMER_FOUNDATION_BIN = $(DISTCHECK_DIR)/consumer_foundation_probe
 
 all: libs probes
 
-libs: $(CORE_LIB) $(FOUNDATION_LIB)
+libs: $(CORE_LIB) $(COREFOUNDATION_LIB) $(FOUNDATION_LIB)
 
-probes: $(C_PROBE_BIN) $(FOUNDATION_PROBE_BIN)
+probes: $(C_PROBE_BIN) $(COREFOUNDATION_PROBE_BIN) $(FOUNDATION_PROBE_BIN)
 
 check: probes
 	$(C_PROBE_BIN)
+	$(COREFOUNDATION_PROBE_BIN)
 	$(FOUNDATION_PROBE_BIN)
 
 $(BUILD_DIR):
@@ -88,6 +99,20 @@ $(CORE_LIB): $(CORE_OBJ) $(UTF8PROC_LIB)
 	rm -f $(CORE_LIB)
 	$(AR) crs $(CORE_LIB) $(CORE_OBJ) $(UTF8PROC_OBJ)
 
+$(COREFOUNDATION_OBJ): $(COREFOUNDATION_SRC) $(COREFOUNDATION_HDR) $(CORE_HDR) | $(BUILD_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic -Werror \
+		-I $(CORE_INC) \
+		-I $(COREFOUNDATION_INC) \
+		-c $(COREFOUNDATION_SRC) \
+		-o $(COREFOUNDATION_OBJ)
+
+$(COREFOUNDATION_LIB): $(COREFOUNDATION_OBJ)
+	rm -f $(COREFOUNDATION_LIB)
+	$(AR) crs $(COREFOUNDATION_LIB) $(COREFOUNDATION_OBJ)
+
 $(FOUNDATION_OBJ): $(FOUNDATION_SRC) $(FOUNDATION_HDR) $(CORE_HDR) | $(BUILD_DIR)
 	$(CC) \
 		$(COMMON_FLAGS) \
@@ -118,6 +143,25 @@ $(C_PROBE_BIN): $(C_PROBE_OBJ) $(CORE_LIB)
 		$(CORE_LIB) \
 		-o $(C_PROBE_BIN)
 
+$(COREFOUNDATION_PROBE_OBJ): $(COREFOUNDATION_PROBE_SRC) $(COREFOUNDATION_HDR) $(CORE_HDR) | $(BUILD_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-I $(CORE_INC) \
+		-I $(COREFOUNDATION_INC) \
+		-c $(COREFOUNDATION_PROBE_SRC) \
+		-o $(COREFOUNDATION_PROBE_OBJ)
+
+$(COREFOUNDATION_PROBE_BIN): $(COREFOUNDATION_PROBE_OBJ) $(COREFOUNDATION_LIB) $(CORE_LIB)
+	$(CC) \
+		-arch ppc -mmacosx-version-min=10.5 \
+		$(COREFOUNDATION_PROBE_OBJ) \
+		$(COREFOUNDATION_LIB) \
+		$(CORE_LIB) \
+		-framework CoreFoundation \
+		-o $(COREFOUNDATION_PROBE_BIN)
+
 $(FOUNDATION_PROBE_OBJ): $(FOUNDATION_PROBE_SRC) $(FOUNDATION_HDR) $(CORE_HDR) | $(BUILD_DIR)
 	$(CC) \
 		$(COMMON_FLAGS) \
@@ -141,8 +185,10 @@ dist: libs
 	mkdir -p $(DIST_DIR)/include
 	mkdir -p $(DIST_DIR)/lib
 	cp -p $(CORE_HDR) $(DIST_DIR)/include/
+	cp -p $(COREFOUNDATION_HDR) $(DIST_DIR)/include/
 	cp -p $(FOUNDATION_HDR) $(DIST_DIR)/include/
 	cp -p $(CORE_LIB) $(DIST_DIR)/lib/
+	cp -p $(COREFOUNDATION_LIB) $(DIST_DIR)/lib/
 	cp -p $(FOUNDATION_LIB) $(DIST_DIR)/lib/
 	@echo "LeoUTF8 distribution staged in $(DIST_DIR)"
 
@@ -179,8 +225,10 @@ install: libs
 	mkdir -p $(DESTDIR)$(PREFIX)/include
 	mkdir -p $(DESTDIR)$(PREFIX)/lib
 	cp -p $(CORE_HDR) $(DESTDIR)$(PREFIX)/include/
+	cp -p $(COREFOUNDATION_HDR) $(DESTDIR)$(PREFIX)/include/
 	cp -p $(FOUNDATION_HDR) $(DESTDIR)$(PREFIX)/include/
 	cp -p $(CORE_LIB) $(DESTDIR)$(PREFIX)/lib/
+	cp -p $(COREFOUNDATION_LIB) $(DESTDIR)$(PREFIX)/lib/
 	cp -p $(FOUNDATION_LIB) $(DESTDIR)$(PREFIX)/lib/
 	@echo "LeoUTF8 installed into $(DESTDIR)$(PREFIX)"
 
