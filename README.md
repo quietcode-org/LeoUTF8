@@ -263,6 +263,37 @@ CFString filesystem bytes match LeoUTF8 NFD: yes
 NSString filesystem bytes match LeoUTF8 NFD: yes
 ~~~
 
+### `make hfscasecheck`
+
+Checks observed HFS+ case-comparison behavior for selected filename pairs.
+
+Current tested pairs:
+
+~~~text
+case.txt     vs CASE.txt
+ä.txt        vs Ä.txt
+café.txt     vs CAFÉ.TXT
+straße.txt   vs STRASSE.TXT
+~~~
+
+Confirmed on Leopard/PPC:
+
+~~~text
+ASCII case.txt vs CASE.txt        -> same file
+ä.txt vs Ä.txt                    -> same file
+café.txt vs CAFÉ.TXT              -> same file
+straße.txt vs STRASSE.TXT         -> separate files
+~~~
+
+Important finding:
+
+~~~text
+Unicode case folding is not equivalent to HFS+ filename comparison.
+~~~
+
+In particular, LeoUTF8 case folding maps `straße.txt` and `STRASSE.TXT` to the
+same folded form, but observed HFS+ behavior treats them as separate filenames.
+
 These probes do not define a final HFS+ filename API yet.
 
 They establish the measured boundary behavior that a future explicit
