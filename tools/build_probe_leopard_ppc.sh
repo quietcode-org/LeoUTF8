@@ -75,7 +75,7 @@ make libutf8proc.a \
     AR=/usr/bin/ar \
     CFLAGS="-Os -arch ppc -mmacosx-version-min=10.5" \
     PICFLAG="-fPIC" \
-    WCFLAGS="-Wall -Wextra -pedantic"
+    WCFLAGS="-Wall -Wextra"
 
 echo
 echo "Built:"
@@ -86,12 +86,34 @@ echo
 echo "Building LeoUTF8 probe..."
 cd "$ROOT_DIR"
 
+CORE_OBJ="$BUILD_ROOT/LeoUTF8.o"
+PROBE_OBJ="$BUILD_ROOT/leoutf8_probe.o"
+
+echo "Compiling LeoUTF8Core..."
 /usr/bin/gcc \
     -Os -arch ppc -mmacosx-version-min=10.5 \
+    -std=c99 \
+    -Wall -Wextra -pedantic -Werror \
     -I "$CORE_INC" \
-    -I "$UTF8PROC_BUILD" \
-    "$CORE_SRC" \
-    "$PROBE_SRC" \
+    -isystem "$UTF8PROC_BUILD" \
+    -c "$CORE_SRC" \
+    -o "$CORE_OBJ"
+
+echo "Compiling LeoUTF8 probe..."
+/usr/bin/gcc \
+    -Os -arch ppc -mmacosx-version-min=10.5 \
+    -std=c99 \
+    -Wall -Wextra -pedantic \
+    -I "$CORE_INC" \
+    -isystem "$UTF8PROC_BUILD" \
+    -c "$PROBE_SRC" \
+    -o "$PROBE_OBJ"
+
+echo "Linking LeoUTF8 probe..."
+/usr/bin/gcc \
+    -arch ppc -mmacosx-version-min=10.5 \
+    "$CORE_OBJ" \
+    "$PROBE_OBJ" \
     "$UTF8PROC_BUILD/libutf8proc.a" \
     -o "$PROBE_BIN"
 
