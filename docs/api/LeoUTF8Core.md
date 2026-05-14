@@ -24,22 +24,156 @@ CLI tools, and other Leopard-Crew projects.
 
 Consumers should include `LeoUTF8.h`, not `utf8proc.h`.
 
-## Input Model
+## API Layers
 
-All current LeoUTF8Core functions operate on null-terminated UTF-8 byte strings:
+LeoUTF8Core exposes two C API layers:
+
+```text
+1. Byte-length based core API
+2. Null-terminated C-string convenience API
+```
+
+The byte-length API is the preferred system boundary API.
+
+The null-terminated API is provided for convenience and is implemented as a  
+wrapper around the byte-length API.
+
+## Byte-Length Core API
+
+The preferred input model is:
+
+```c
+const unsigned char *bytes, size_t length
+```
+
+These functions do not require null-terminated input and may process buffers  
+that contain embedded NUL bytes.
+
+### Validation
+
+```c
+LeoUTF8Status LeoUTF8ValidateBytes(const unsigned char *bytes,
+                                   size_t length);
+```
+
+Validates exactly `length` bytes.
+
+Returns:
+
+- `LEO_UTF8_OK` for valid UTF-8
+    
+- `LEO_UTF8_INVALID` for malformed UTF-8 or `NULL`
+    
+- `LEO_UTF8_ERROR` for implementation-level range errors
+    
+
+### Codepoint Count
+
+```c
+LeoUTF8Status LeoUTF8CodepointCountBytes(const unsigned char *bytes,
+                                         size_t length,
+                                         size_t *count);
+```
+
+Counts Unicode codepoints in exactly `length` bytes.
+
+Returns:
+
+- `LEO_UTF8_OK` on success
+    
+- `LEO_UTF8_INVALID` if `bytes` or `count` is `NULL`
+    
+- `LEO_UTF8_INVALID` if the input is malformed UTF-8
+    
+
+On success, `*count` receives the number of Unicode codepoints.
+
+Important:
+
+```text
+Codepoint count is not grapheme-cluster count.
+```
+
+For example, a decomposed character such as `o` + combining diaeresis counts as  
+two codepoints, not one user-perceived character.
+
+### NFC Normalization
+
+```c
+LeoUTF8Status LeoUTF8NormalizeNFCBytes(const unsigned char *bytes,
+                                       size_t length,
+                                       unsigned char **out,
+                                       size_t *outLen);
+```
+
+Produces a newly allocated NFC-normalized UTF-8 byte string.
+
+### NFD Normalization
+
+```c
+LeoUTF8Status LeoUTF8NormalizeNFDBytes(const unsigned char *bytes,
+                                       size_t length,
+                                       unsigned char **out,
+                                       size_t *outLen);
+```
+
+Produces a newly allocated NFD-normalized UTF-8 byte string.
+
+### Case Folding
+
+```c
+LeoUTF8Status LeoUTF8CaseFoldBytes(const unsigned char *bytes,
+                                   size_t length,
+                                   unsigned char **out,
+                                   size_t *outLen);
+```
+
+Produces a newly allocated Unicode-casefolded UTF-8 byte string.
+
+Case folding is not locale-specific lowercase conversion.
+
+Example:
+
+```text
+Straße -> strasse
+```
+
+LeoUTF8Core does not currently provide locale-specific casing.
+
+## Null-Terminated Convenience API
+
+The convenience API accepts null-terminated UTF-8 byte strings:
 
 ```c
 const unsigned char *text
 ```
 
-A `NULL` input pointer is invalid and returns:
+These functions are wrappers around the byte-length core API and determine the  
+input length with `strlen`.
 
 ```c
-LEO_UTF8_INVALID
+LeoUTF8Status LeoUTF8Validate(const unsigned char *text);
+
+LeoUTF8Status LeoUTF8CodepointCount(const unsigned char *text,
+                                    size_t *count);
+
+LeoUTF8Status LeoUTF8NormalizeNFC(const unsigned char *text,
+                                  unsigned char **out,
+                                  size_t *outLen);
+
+LeoUTF8Status LeoUTF8NormalizeNFD(const unsigned char *text,
+                                  unsigned char **out,
+                                  size_t *outLen);
+
+LeoUTF8Status LeoUTF8CaseFold(const unsigned char *text,
+                              unsigned char **out,
+                              size_t *outLen);
 ```
 
-LeoUTF8Core does not currently accept explicit byte lengths for input strings.  
-This may be added later if needed for binary-safe APIs.
+Use these only when the input is known to be a normal C string.
+
+For system boundaries, file buffers, network data, Rexx buffers, or other  
+byte sequences, prefer the byte-length API.
 
 ## Status Codes
 
@@ -87,74 +221,19 @@ Returns the UTF-8 engine version currently used by LeoUTF8Core.
 
 At the initial proof stage this returns the vendored utf8proc version.
 
-## Validation
+## Output Ownership
+
+The following functions allocate output:
 
 ```c
-LeoUTF8Status LeoUTF8Validate(const unsigned char *text);
+LeoUTF8NormalizeNFCBytes(...)
+LeoUTF8NormalizeNFDBytes(...)
+LeoUTF8CaseFoldBytes(...)
+
+LeoUTF8NormalizeNFC(...)
+LeoUTF8NormalizeNFD(...)
+LeoUTF8CaseFold(...)
 ```
-
-Validates a null-terminated UTF-8 byte string.
-
-Returns:
-
-- `LEO_UTF8_OK` for valid UTF-8
-    
-- `LEO_UTF8_INVALID` for malformed UTF-8 or `NULL`
-    
-
-Validation does not normalize, modify, or allocate output.
-
-## Codepoint Count
-
-```c
-LeoUTF8Status LeoUTF8CodepointCount(const unsigned char *text, size_t *count);
-```
-
-Counts Unicode codepoints in a null-terminated UTF-8 byte string.
-
-Returns:
-
-- `LEO_UTF8_OK` on success
-    
-- `LEO_UTF8_INVALID` if `text` or `count` is `NULL`
-    
-- `LEO_UTF8_INVALID` if the input is malformed UTF-8
-    
-
-On success, `*count` receives the number of Unicode codepoints.
-
-Important:
-
-```text
-Codepoint count is not grapheme-cluster count.
-```
-
-For example, a decomposed character such as `o` + combining diaeresis counts as  
-two codepoints, not one user-perceived character.
-
-## Normalization
-
-### NFC
-
-```c
-LeoUTF8Status LeoUTF8NormalizeNFC(const unsigned char *text,
-                                  unsigned char **out,
-                                  size_t *outLen);
-```
-
-Produces a newly allocated NFC-normalized UTF-8 byte string.
-
-### NFD
-
-```c
-LeoUTF8Status LeoUTF8NormalizeNFD(const unsigned char *text,
-                                  unsigned char **out,
-                                  size_t *outLen);
-```
-
-Produces a newly allocated NFD-normalized UTF-8 byte string.
-
-### Ownership
 
 On success:
 
@@ -170,12 +249,12 @@ The caller owns this memory and must release it with:
 LeoUTF8Free(*out);
 ```
 
-### Length
+## Output Length
 
 If `outLen` is not `NULL`, it receives the byte length of the output string,  
 excluding the terminating NUL byte.
 
-### Failure Behavior
+## Failure Behavior
 
 On failure:
 
@@ -191,26 +270,6 @@ and, if `outLen` is provided:
 
 This is part of the API contract.
 
-## Case Folding
-
-```c
-LeoUTF8Status LeoUTF8CaseFold(const unsigned char *text,
-                              unsigned char **out,
-                              size_t *outLen);
-```
-
-Produces a newly allocated Unicode-casefolded UTF-8 byte string.
-
-Case folding is not the same as locale-specific lowercase conversion.
-
-Example:
-
-```text
-Straße -> strasse
-```
-
-LeoUTF8Core does not currently provide locale-specific casing.
-
 ## Memory Release
 
 ```c
@@ -224,7 +283,7 @@ It is safe to call with `NULL`.
 Any string returned by LeoUTF8Core must be released with `LeoUTF8Free`, not  
 with `free`.
 
-## Current Confirmed Operations
+## Confirmed Operations
 
 The current Leopard/PPC probe confirms:
 
@@ -233,6 +292,10 @@ The current Leopard/PPC probe confirms:
 - invalid UTF-8 rejection
     
 - NULL input rejection
+    
+- embedded NUL byte validation through byte-length API
+    
+- embedded NUL codepoint counting through byte-length API
     
 - codepoint counting
     
@@ -291,3 +354,10 @@ vendor/utf8proc
   -> Foundation / CLI / Rexx / app-specific bridges
 ```
 
+## Current Core Doctrine
+
+```text
+Byte-length API is the core.
+C-string API is convenience.
+Foundation/NSString comes later.
+```
