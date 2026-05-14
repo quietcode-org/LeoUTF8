@@ -35,6 +35,7 @@ static int expect_status(const char *label,
 int main(void)
 {
     CFStringRef string;
+    CFStringRef invalidString;
     CFDataRef data;
     LeoUTF8Status status;
     size_t count;
@@ -85,17 +86,31 @@ int main(void)
 
     printf("CFData codepoints: %lu\n", (unsigned long)count);
 
+    invalidString = 0;
     status = LeoUTF8CreateCFStringFromBytes(invalidUtf8,
                                             sizeof(invalidUtf8),
-                                            &string);
+                                            &invalidString);
 
     if (expect_status("reject invalid UTF-8 CFString input",
                       status,
                       LEO_UTF8_INVALID) != 0) {
         CFRelease(data);
         CFRelease(string);
+        if (invalidString != 0) {
+            CFRelease(invalidString);
+        }
         return 1;
     }
+
+    if (invalidString != 0) {
+        fprintf(stderr, "invalid CFString input left output dirty\n");
+        CFRelease(invalidString);
+        CFRelease(data);
+        CFRelease(string);
+        return 1;
+    }
+
+    printf("invalid CFString output cleanup: OK\n");
 
     CFRelease(data);
     CFRelease(string);
