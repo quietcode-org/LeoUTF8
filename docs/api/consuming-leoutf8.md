@@ -15,6 +15,7 @@ Result:
 dist/LeoUTF8/
 ├── include/
 │   ├── LeoUTF8.h
+│   ├── LeoUTF8Version.h
 │   ├── LeoUTF8CoreFoundation.h
 │   └── LeoUTF8Foundation.h
 └── lib/
@@ -22,6 +23,35 @@ dist/LeoUTF8/
     ├── libLeoUTF8CoreFoundation.a
     └── libLeoUTF8Foundation.a
 ```
+
+## Version Metadata
+
+LeoUTF8 distributions expose public brick version metadata through:
+
+~~~c
+#include "LeoUTF8Version.h"
+~~~
+
+Most Core consumers can include only:
+
+~~~c
+#include "LeoUTF8.h"
+~~~
+
+because `LeoUTF8.h` includes `LeoUTF8Version.h`.
+
+Important distinction:
+
+~~~text
+LeoUTF8Version()
+  -> engine / utf8proc-adjacent version
+
+LeoUTF8BrickVersionString()
+  -> LeoUTF8 brick version
+~~~
+
+Consumers should use the brick version to identify the LeoUTF8 integration
+surface and the engine version only for backend diagnostics.
 
 ## Core Consumer
 
