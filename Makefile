@@ -71,7 +71,10 @@ HFSCASE_PROBE_BIN = $(BUILD_DIR)/hfsplus_case_probe
 HFSCOMPARE_PROBE_SRC = Research/HFSPlus/hfsplus_cfcompare_probe.m
 HFSCOMPARE_PROBE_BIN = $(BUILD_DIR)/hfsplus_cfcompare_probe
 
-.PHONY: all libs probes check hfscheck hfsboundarycheck hfscasecheck hfscomparecheck clean dist distcheck distclean install utf8proc
+HFSURL_PROBE_SRC = Research/HFSPlus/hfsplus_url_boundary_probe.m
+HFSURL_PROBE_BIN = $(BUILD_DIR)/hfsplus_url_boundary_probe
+
+.PHONY: all libs probes check hfscheck hfsboundarycheck hfscasecheck hfscomparecheck hfsurlcheck clean dist distcheck distclean install utf8proc
 
 all: libs probes
 
@@ -302,6 +305,20 @@ $(HFSCOMPARE_PROBE_BIN): $(HFSCOMPARE_PROBE_SRC) $(CORE_LIB) | $(BUILD_DIR)
 
 hfscomparecheck: $(HFSCOMPARE_PROBE_BIN)
 	$(HFSCOMPARE_PROBE_BIN)
+
+$(HFSURL_PROBE_BIN): $(HFSURL_PROBE_SRC) $(CORE_LIB) | $(BUILD_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-Wall -Wextra \
+		-I $(CORE_INC) \
+		$(HFSURL_PROBE_SRC) \
+		$(CORE_LIB) \
+		-framework Foundation \
+		-framework CoreFoundation \
+		-o $(HFSURL_PROBE_BIN)
+
+hfsurlcheck: $(HFSURL_PROBE_BIN)
+	$(HFSURL_PROBE_BIN)
 
 install: libs
 	mkdir -p $(DESTDIR)$(PREFIX)/include
