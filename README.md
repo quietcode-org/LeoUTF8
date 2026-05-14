@@ -223,6 +223,51 @@ make install DESTDIR="$PWD/build-work/install-test" PREFIX=/LeoUTF8
 
 This does not write into the live system when `DESTDIR` is used.
 
+## HFS+ Filename Boundary Research
+
+LeoUTF8 V0.3 research currently investigates Leopard/HFS+ filename boundaries.
+
+Two research probes are available:
+
+~~~sh
+make hfscheck
+make hfsboundarycheck
+~~~
+
+### `make hfscheck`
+
+Checks how an HFS+ volume handles canonically equivalent NFC and NFD UTF-8
+filenames through POSIX file creation and `readdir()`.
+
+Confirmed on Leopard/PPC:
+
+~~~text
+NFD O_EXCL matched existing file: yes
+readdir returned NFC bytes: no
+readdir returned LeoUTF8 NFD bytes: yes
+~~~
+
+### `make hfsboundarycheck`
+
+Checks the same HFS+ filename boundary through:
+
+- POSIX `readdir()`
+- `CFStringGetFileSystemRepresentation`
+- `NSString fileSystemRepresentation`
+
+Confirmed on Leopard/PPC:
+
+~~~text
+readdir bytes match LeoUTF8 NFD: yes
+CFString filesystem bytes match LeoUTF8 NFD: yes
+NSString filesystem bytes match LeoUTF8 NFD: yes
+~~~
+
+These probes do not define a final HFS+ filename API yet.
+
+They establish the measured boundary behavior that a future explicit
+`LeoUTF8HFS` layer may use.
+
 ## Repository Layout
 
 ```text
