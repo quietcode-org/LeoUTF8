@@ -96,7 +96,7 @@ make release
 Generated archive:
 
 ~~~text
-release/LeoUTF8-0.7.0-leopard-ppc.tar.gz
+release/LeoUTF8-0.7.2-leopard-ppc.tar.gz
 ~~~
 
 Archive contents include:

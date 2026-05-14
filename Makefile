@@ -408,7 +408,7 @@ examples: $(CORE_EXAMPLE_BIN) $(COREFOUNDATION_EXAMPLE_BIN) $(FOUNDATION_EXAMPLE
 	@echo "LeoUTF8 examples completed successfully."
 
 # Local release archive for the hardened LeoUTF8 integration brick.
-RELEASE_VERSION = 0.7.1
+RELEASE_VERSION = 0.7.2
 RELEASE_NAME = LeoUTF8-$(RELEASE_VERSION)-leopard-ppc
 RELEASE_ROOT = release
 RELEASE_DIR = $(RELEASE_ROOT)/$(RELEASE_NAME)
