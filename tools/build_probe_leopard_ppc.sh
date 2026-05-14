@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # LeoUTF8 Leopard/PPC probe build.
-# Builds vendored utf8proc outside vendor/ and links the initial LeoUTF8 probe.
+# Builds vendored utf8proc outside vendor/ and links the initial LeoUTF8Core probe.
 # Must be run on Mac OS X 10.5.x PowerPC.
 
 set -e
@@ -11,12 +11,15 @@ VENDOR_UTF8PROC="$ROOT_DIR/vendor/utf8proc"
 BUILD_ROOT="$ROOT_DIR/build-work"
 UTF8PROC_BUILD="$BUILD_ROOT/utf8proc-probe"
 PROBE_SRC="$ROOT_DIR/Sources/LeoUTF8CLI/leoutf8_probe.c"
+CORE_SRC="$ROOT_DIR/Sources/LeoUTF8Core/LeoUTF8.c"
+CORE_INC="$ROOT_DIR/Sources/LeoUTF8Core"
 PROBE_BIN="$BUILD_ROOT/leoutf8_probe"
 
 echo "LeoUTF8 Leopard/PPC probe build"
 echo "Root:          $ROOT_DIR"
 echo "Vendor source: $VENDOR_UTF8PROC"
 echo "Build root:    $BUILD_ROOT"
+echo "Core source:   $CORE_SRC"
 echo "Probe source:  $PROBE_SRC"
 echo "Probe binary:  $PROBE_BIN"
 echo
@@ -44,6 +47,11 @@ esac
 
 if [ ! -d "$VENDOR_UTF8PROC" ]; then
     echo "ERROR: utf8proc vendor source not found: $VENDOR_UTF8PROC"
+    exit 1
+fi
+
+if [ ! -f "$CORE_SRC" ]; then
+    echo "ERROR: Core source not found: $CORE_SRC"
     exit 1
 fi
 
@@ -80,7 +88,9 @@ cd "$ROOT_DIR"
 
 /usr/bin/gcc \
     -Os -arch ppc -mmacosx-version-min=10.5 \
+    -I "$CORE_INC" \
     -I "$UTF8PROC_BUILD" \
+    "$CORE_SRC" \
     "$PROBE_SRC" \
     "$UTF8PROC_BUILD/libutf8proc.a" \
     -o "$PROBE_BIN"
