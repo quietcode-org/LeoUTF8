@@ -30,6 +30,8 @@ Confirmed on real Mac OS X 10.5.8 PowerPC hardware:
 - UTF-8 `NSData` creation from `NSString` works
 - internal probes build and run on Leopard/PPC
 - external consumer probes build and run against `dist/LeoUTF8`
+- public LeoUTF8 brick version metadata is available
+- engine version and brick version are reported separately
 
 ## Architecture
 
@@ -114,6 +116,33 @@ NSString is native Leopard text.
 NSData is explicit UTF-8 transport.
 LeoUTF8Core guards the boundary.
 ```
+
+## Version Identity
+
+LeoUTF8 exposes two separate version concepts:
+
+~~~text
+LeoUTF8Version()
+  -> UTF-8 engine / utf8proc-adjacent version
+
+LeoUTF8BrickVersionString()
+  -> LeoUTF8 project brick version
+~~~
+
+Current V0.7 values:
+
+~~~text
+Engine version: 2.11.3
+Brick version:  0.7.0
+Release name:   Integration Brick Hardening
+Target:         Mac OS X 10.5.8 Leopard PowerPC
+~~~
+
+See:
+
+~~~text
+docs/api/LeoUTF8Version.md
+~~~
 
 ## What LeoUTF8 Is Not
 
@@ -205,6 +234,7 @@ LeoUTF8 distcheck completed successfully.
 dist/LeoUTF8/
 ├── include/
 │   ├── LeoUTF8.h
+│   ├── LeoUTF8Version.h
 │   ├── LeoUTF8CoreFoundation.h
 │   └── LeoUTF8Foundation.h
 └── lib/
@@ -372,6 +402,7 @@ They establish the measured boundary behavior that a future explicit
 docs/
   api/
     LeoUTF8Core.md
+    LeoUTF8Version.md
     LeoUTF8CoreFoundation.md
     LeoUTF8Foundation.md
     consuming-leoutf8.md
