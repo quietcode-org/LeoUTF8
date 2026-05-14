@@ -62,7 +62,10 @@ CONSUMER_FOUNDATION_BIN = $(DISTCHECK_DIR)/consumer_foundation_probe
 HFSPLUS_PROBE_SRC = Research/HFSPlus/hfsplus_filename_probe.c
 HFSPLUS_PROBE_BIN = $(BUILD_DIR)/hfsplus_filename_probe
 
-.PHONY: all libs probes check hfscheck clean dist distcheck distclean install utf8proc
+HFSBOUNDARY_PROBE_SRC = Research/HFSPlus/hfsplus_cfstring_boundary_probe.m
+HFSBOUNDARY_PROBE_BIN = $(BUILD_DIR)/hfsplus_cfstring_boundary_probe
+
+.PHONY: all libs probes check hfscheck hfsboundarycheck clean dist distcheck distclean install utf8proc
 
 all: libs probes
 
@@ -252,6 +255,20 @@ $(HFSPLUS_PROBE_BIN): $(HFSPLUS_PROBE_SRC) $(CORE_LIB) | $(BUILD_DIR)
 
 hfscheck: $(HFSPLUS_PROBE_BIN)
 	$(HFSPLUS_PROBE_BIN)
+
+$(HFSBOUNDARY_PROBE_BIN): $(HFSBOUNDARY_PROBE_SRC) $(CORE_LIB) | $(BUILD_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-Wall -Wextra \
+		-I $(CORE_INC) \
+		$(HFSBOUNDARY_PROBE_SRC) \
+		$(CORE_LIB) \
+		-framework Foundation \
+		-framework CoreFoundation \
+		-o $(HFSBOUNDARY_PROBE_BIN)
+
+hfsboundarycheck: $(HFSBOUNDARY_PROBE_BIN)
+	$(HFSBOUNDARY_PROBE_BIN)
 
 install: libs
 	mkdir -p $(DESTDIR)$(PREFIX)/include
