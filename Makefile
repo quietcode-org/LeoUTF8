@@ -1,5 +1,6 @@
 # LeoUTF8 Leopard/PPC Makefile.
-# Builds LeoUTF8Core, LeoUTF8Foundation, probe tools, and reusable artifacts.
+# Builds LeoUTF8Core, LeoUTF8Foundation, probe tools, reusable artifacts,
+# and distribution consumer checks.
 #
 # This Makefile is intentionally small and Leopard-friendly.
 # It does not modify vendor/ sources.
@@ -13,6 +14,7 @@ DESTDIR =
 COMMON_FLAGS = -Os -arch ppc -mmacosx-version-min=10.5
 BUILD_DIR = build-work
 DIST_DIR = dist/LeoUTF8
+DISTCHECK_DIR = $(BUILD_DIR)/distcheck
 
 UTF8PROC_BUILD = $(BUILD_DIR)/utf8proc
 UTF8PROC_LIB = $(UTF8PROC_BUILD)/libutf8proc.a
@@ -38,7 +40,13 @@ FOUNDATION_PROBE_SRC = Sources/LeoUTF8CLI/leoutf8_foundation_probe.m
 FOUNDATION_PROBE_OBJ = $(BUILD_DIR)/leoutf8_foundation_probe.o
 FOUNDATION_PROBE_BIN = $(BUILD_DIR)/leoutf8_foundation_probe
 
-.PHONY: all libs probes check clean dist distclean install utf8proc
+CONSUMER_CORE_SRC = Tests/consumer_core_probe.c
+CONSUMER_CORE_BIN = $(DISTCHECK_DIR)/consumer_core_probe
+
+CONSUMER_FOUNDATION_SRC = Tests/consumer_foundation_probe.m
+CONSUMER_FOUNDATION_BIN = $(DISTCHECK_DIR)/consumer_foundation_probe
+
+.PHONY: all libs probes check clean dist distcheck distclean install utf8proc
 
 all: libs probes
 
@@ -137,6 +145,35 @@ dist: libs
 	cp -p $(CORE_LIB) $(DIST_DIR)/lib/
 	cp -p $(FOUNDATION_LIB) $(DIST_DIR)/lib/
 	@echo "LeoUTF8 distribution staged in $(DIST_DIR)"
+
+$(DISTCHECK_DIR):
+	mkdir -p $(DISTCHECK_DIR)
+
+$(CONSUMER_CORE_BIN): dist $(CONSUMER_CORE_SRC) | $(DISTCHECK_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-I $(DIST_DIR)/include \
+		$(CONSUMER_CORE_SRC) \
+		$(DIST_DIR)/lib/libLeoUTF8Core.a \
+		-o $(CONSUMER_CORE_BIN)
+
+$(CONSUMER_FOUNDATION_BIN): dist $(CONSUMER_FOUNDATION_SRC) | $(DISTCHECK_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-Wall -Wextra \
+		-I $(DIST_DIR)/include \
+		$(CONSUMER_FOUNDATION_SRC) \
+		$(DIST_DIR)/lib/libLeoUTF8Foundation.a \
+		$(DIST_DIR)/lib/libLeoUTF8Core.a \
+		-framework Foundation \
+		-o $(CONSUMER_FOUNDATION_BIN)
+
+distcheck: $(CONSUMER_CORE_BIN) $(CONSUMER_FOUNDATION_BIN)
+	$(CONSUMER_CORE_BIN)
+	$(CONSUMER_FOUNDATION_BIN)
+	@echo "LeoUTF8 distcheck completed successfully."
 
 install: libs
 	mkdir -p $(DESTDIR)$(PREFIX)/include
