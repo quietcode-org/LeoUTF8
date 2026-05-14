@@ -59,7 +59,10 @@ CONSUMER_COREFOUNDATION_BIN = $(DISTCHECK_DIR)/consumer_corefoundation_probe
 CONSUMER_FOUNDATION_SRC = Tests/consumer_foundation_probe.m
 CONSUMER_FOUNDATION_BIN = $(DISTCHECK_DIR)/consumer_foundation_probe
 
-.PHONY: all libs probes check clean dist distcheck distclean install utf8proc
+HFSPLUS_PROBE_SRC = Research/HFSPlus/hfsplus_filename_probe.c
+HFSPLUS_PROBE_BIN = $(BUILD_DIR)/hfsplus_filename_probe
+
+.PHONY: all libs probes check hfscheck clean dist distcheck distclean install utf8proc
 
 all: libs probes
 
@@ -236,6 +239,19 @@ distcheck: $(CONSUMER_CORE_BIN) $(CONSUMER_COREFOUNDATION_BIN) $(CONSUMER_FOUNDA
 	$(CONSUMER_COREFOUNDATION_BIN)
 	$(CONSUMER_FOUNDATION_BIN)
 	@echo "LeoUTF8 distcheck completed successfully."
+
+$(HFSPLUS_PROBE_BIN): $(HFSPLUS_PROBE_SRC) $(CORE_LIB) | $(BUILD_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-I $(CORE_INC) \
+		$(HFSPLUS_PROBE_SRC) \
+		$(CORE_LIB) \
+		-o $(HFSPLUS_PROBE_BIN)
+
+hfscheck: $(HFSPLUS_PROBE_BIN)
+	$(HFSPLUS_PROBE_BIN)
 
 install: libs
 	mkdir -p $(DESTDIR)$(PREFIX)/include
