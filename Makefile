@@ -68,7 +68,10 @@ HFSBOUNDARY_PROBE_BIN = $(BUILD_DIR)/hfsplus_cfstring_boundary_probe
 HFSCASE_PROBE_SRC = Research/HFSPlus/hfsplus_case_probe.c
 HFSCASE_PROBE_BIN = $(BUILD_DIR)/hfsplus_case_probe
 
-.PHONY: all libs probes check hfscheck hfsboundarycheck hfscasecheck clean dist distcheck distclean install utf8proc
+HFSCOMPARE_PROBE_SRC = Research/HFSPlus/hfsplus_cfcompare_probe.m
+HFSCOMPARE_PROBE_BIN = $(BUILD_DIR)/hfsplus_cfcompare_probe
+
+.PHONY: all libs probes check hfscheck hfsboundarycheck hfscasecheck hfscomparecheck clean dist distcheck distclean install utf8proc
 
 all: libs probes
 
@@ -285,6 +288,20 @@ $(HFSCASE_PROBE_BIN): $(HFSCASE_PROBE_SRC) $(CORE_LIB) | $(BUILD_DIR)
 
 hfscasecheck: $(HFSCASE_PROBE_BIN)
 	$(HFSCASE_PROBE_BIN)
+
+$(HFSCOMPARE_PROBE_BIN): $(HFSCOMPARE_PROBE_SRC) $(CORE_LIB) | $(BUILD_DIR)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-Wall -Wextra \
+		-I $(CORE_INC) \
+		$(HFSCOMPARE_PROBE_SRC) \
+		$(CORE_LIB) \
+		-framework Foundation \
+		-framework CoreFoundation \
+		-o $(HFSCOMPARE_PROBE_BIN)
+
+hfscomparecheck: $(HFSCOMPARE_PROBE_BIN)
+	$(HFSCOMPARE_PROBE_BIN)
 
 install: libs
 	mkdir -p $(DESTDIR)$(PREFIX)/include
