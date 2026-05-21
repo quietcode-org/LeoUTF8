@@ -458,3 +458,41 @@ apidocs:
 	$(HEADERDOC_TOOL) -o $(HEADERDOC_OUTPUT) $(PUBLIC_HEADERS)
 	$(HEADERDOC_GATHER) $(HEADERDOC_OUTPUT)
 	@echo "LeoUTF8 HeaderDoc output staged in $(HEADERDOC_OUTPUT)"
+
+# LeoFuzzer integration
+LEOFUZZ_BIN ?= ../LeoFuzzer/bin/leofuzz
+LEOFUZZ_RESULTS_DIR = results/leofuzz
+LEOFUZZ_VALIDATE_SRC = Tests/leofuzz_validate_probe.c
+LEOFUZZ_VALIDATE_BIN = $(BUILD_DIR)/leofuzz_validate_probe
+
+$(LEOFUZZ_VALIDATE_BIN): $(LEOFUZZ_VALIDATE_SRC) $(CORE_HDR) $(CORE_LIB)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-I $(CORE_INC) \
+		$(LEOFUZZ_VALIDATE_SRC) \
+		$(CORE_LIB) \
+		-o $(LEOFUZZ_VALIDATE_BIN)
+
+leofuzz-validate-probe: $(LEOFUZZ_VALIDATE_BIN)
+
+leofuzz-corpus-valid: leofuzz-validate-probe
+	test -x $(LEOFUZZ_BIN)
+	rm -rf $(LEOFUZZ_RESULTS_DIR)/valid
+	$(LEOFUZZ_BIN) --target $(LEOFUZZ_VALIDATE_BIN) --corpus corpus/leofuzz/valid --results $(LEOFUZZ_RESULTS_DIR)/valid
+	grep 'findings=0' $(LEOFUZZ_RESULTS_DIR)/valid/summary.txt
+	awk -F '\t' 'NR > 1 { if (NF != 7) exit 1 }' $(LEOFUZZ_RESULTS_DIR)/valid/runs.tsv
+
+leofuzz-corpus-invalid: leofuzz-validate-probe
+	test -x $(LEOFUZZ_BIN)
+	rm -rf $(LEOFUZZ_RESULTS_DIR)/invalid
+	$(LEOFUZZ_BIN) --target $(LEOFUZZ_VALIDATE_BIN) --corpus corpus/leofuzz/invalid --results $(LEOFUZZ_RESULTS_DIR)/invalid
+	grep 'findings=0' $(LEOFUZZ_RESULTS_DIR)/invalid/summary.txt
+	grep 'rejected=5' $(LEOFUZZ_RESULTS_DIR)/invalid/summary.txt
+	grep '^DOMAIN_REJECT' $(LEOFUZZ_RESULTS_DIR)/invalid/runs.tsv
+	awk -F '\t' 'NR > 1 { if (NF != 7) exit 1 }' $(LEOFUZZ_RESULTS_DIR)/invalid/runs.tsv
+
+leofuzz-check: leofuzz-corpus-valid leofuzz-corpus-invalid
+
+.PHONY: leofuzz-validate-probe leofuzz-corpus-valid leofuzz-corpus-invalid leofuzz-check

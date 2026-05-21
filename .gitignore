@@ -66,3 +66,7 @@ dist/
 
 # Local release archives
 release/
+
+# LeoFuzzer runtime reports
+/results/leofuzz/*
+!/results/leofuzz/.gitkeep
