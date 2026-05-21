@@ -603,3 +603,81 @@ leofuzz-transform-check: \
 	leofuzz-casefold-invalid
 
 .PHONY: leofuzz-transform-probes leofuzz-nfc-valid leofuzz-nfc-invalid leofuzz-nfd-valid leofuzz-nfd-invalid leofuzz-casefold-valid leofuzz-casefold-invalid leofuzz-transform-check
+
+# LeoFuzzer transform expectation probes
+LEOFUZZ_TRANSFORM_EXPECT_SRC = Tests/leofuzz_transform_expect_probe.c
+LEOFUZZ_NFC_EXPECT_BIN = $(BUILD_DIR)/leofuzz_nfc_expect_probe
+LEOFUZZ_NFD_EXPECT_BIN = $(BUILD_DIR)/leofuzz_nfd_expect_probe
+LEOFUZZ_CASEFOLD_EXPECT_BIN = $(BUILD_DIR)/leofuzz_casefold_expect_probe
+
+$(LEOFUZZ_NFC_EXPECT_BIN): $(LEOFUZZ_TRANSFORM_EXPECT_SRC) $(CORE_HDR) $(CORE_LIB)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-DLEOFUZZ_TRANSFORM_NFC \
+		-I $(CORE_INC) \
+		$(LEOFUZZ_TRANSFORM_EXPECT_SRC) \
+		$(CORE_LIB) \
+		-o $(LEOFUZZ_NFC_EXPECT_BIN)
+
+$(LEOFUZZ_NFD_EXPECT_BIN): $(LEOFUZZ_TRANSFORM_EXPECT_SRC) $(CORE_HDR) $(CORE_LIB)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-DLEOFUZZ_TRANSFORM_NFD \
+		-I $(CORE_INC) \
+		$(LEOFUZZ_TRANSFORM_EXPECT_SRC) \
+		$(CORE_LIB) \
+		-o $(LEOFUZZ_NFD_EXPECT_BIN)
+
+$(LEOFUZZ_CASEFOLD_EXPECT_BIN): $(LEOFUZZ_TRANSFORM_EXPECT_SRC) $(CORE_HDR) $(CORE_LIB)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-DLEOFUZZ_TRANSFORM_CASEFOLD \
+		-I $(CORE_INC) \
+		$(LEOFUZZ_TRANSFORM_EXPECT_SRC) \
+		$(CORE_LIB) \
+		-o $(LEOFUZZ_CASEFOLD_EXPECT_BIN)
+
+leofuzz-transform-expect-probes: $(LEOFUZZ_NFC_EXPECT_BIN) $(LEOFUZZ_NFD_EXPECT_BIN) $(LEOFUZZ_CASEFOLD_EXPECT_BIN)
+
+leofuzz-nfc-expect: leofuzz-transform-expect-probes
+	test -x $(LEOFUZZ_BIN)
+	rm -rf $(LEOFUZZ_RESULTS_DIR)/nfc-expect
+	$(LEOFUZZ_BIN) --target $(LEOFUZZ_NFC_EXPECT_BIN) --corpus corpus/leofuzz/expect/nfc --results $(LEOFUZZ_RESULTS_DIR)/nfc-expect
+	grep 'runs=1' $(LEOFUZZ_RESULTS_DIR)/nfc-expect/summary.txt
+	grep 'ok=1' $(LEOFUZZ_RESULTS_DIR)/nfc-expect/summary.txt
+	grep 'rejected=0' $(LEOFUZZ_RESULTS_DIR)/nfc-expect/summary.txt
+	grep 'findings=0' $(LEOFUZZ_RESULTS_DIR)/nfc-expect/summary.txt
+	awk -F '\t' 'NR > 1 { if (NF != 7) exit 1 }' $(LEOFUZZ_RESULTS_DIR)/nfc-expect/runs.tsv
+
+leofuzz-nfd-expect: leofuzz-transform-expect-probes
+	test -x $(LEOFUZZ_BIN)
+	rm -rf $(LEOFUZZ_RESULTS_DIR)/nfd-expect
+	$(LEOFUZZ_BIN) --target $(LEOFUZZ_NFD_EXPECT_BIN) --corpus corpus/leofuzz/expect/nfd --results $(LEOFUZZ_RESULTS_DIR)/nfd-expect
+	grep 'runs=1' $(LEOFUZZ_RESULTS_DIR)/nfd-expect/summary.txt
+	grep 'ok=1' $(LEOFUZZ_RESULTS_DIR)/nfd-expect/summary.txt
+	grep 'rejected=0' $(LEOFUZZ_RESULTS_DIR)/nfd-expect/summary.txt
+	grep 'findings=0' $(LEOFUZZ_RESULTS_DIR)/nfd-expect/summary.txt
+	awk -F '\t' 'NR > 1 { if (NF != 7) exit 1 }' $(LEOFUZZ_RESULTS_DIR)/nfd-expect/runs.tsv
+
+leofuzz-casefold-expect: leofuzz-transform-expect-probes
+	test -x $(LEOFUZZ_BIN)
+	rm -rf $(LEOFUZZ_RESULTS_DIR)/casefold-expect
+	$(LEOFUZZ_BIN) --target $(LEOFUZZ_CASEFOLD_EXPECT_BIN) --corpus corpus/leofuzz/expect/casefold --results $(LEOFUZZ_RESULTS_DIR)/casefold-expect
+	grep 'runs=1' $(LEOFUZZ_RESULTS_DIR)/casefold-expect/summary.txt
+	grep 'ok=1' $(LEOFUZZ_RESULTS_DIR)/casefold-expect/summary.txt
+	grep 'rejected=0' $(LEOFUZZ_RESULTS_DIR)/casefold-expect/summary.txt
+	grep 'findings=0' $(LEOFUZZ_RESULTS_DIR)/casefold-expect/summary.txt
+	awk -F '\t' 'NR > 1 { if (NF != 7) exit 1 }' $(LEOFUZZ_RESULTS_DIR)/casefold-expect/runs.tsv
+
+leofuzz-transform-expect-check: \
+	leofuzz-nfc-expect \
+	leofuzz-nfd-expect \
+	leofuzz-casefold-expect
+
+.PHONY: leofuzz-transform-expect-probes leofuzz-nfc-expect leofuzz-nfd-expect leofuzz-casefold-expect leofuzz-transform-expect-check

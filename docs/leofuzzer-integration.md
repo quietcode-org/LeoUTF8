@@ -130,3 +130,39 @@ Expected invalid-corpus result for each transform:
     findings=0
 
 Invalid UTF-8 remains a domain-level rejection for transform probes.
+
+## Transform Output Expectation Probes
+
+LeoUTF8 also provides exact-output transform probes.
+
+Probe source:
+
+    Tests/leofuzz_transform_expect_probe.c
+
+Case corpus:
+
+    corpus/leofuzz/expect/nfc/
+    corpus/leofuzz/expect/nfd/
+    corpus/leofuzz/expect/casefold/
+
+Case file format:
+
+    input_hex=...
+    expected_hex=...
+
+Full expectation check:
+
+    make leofuzz-transform-expect-check
+
+Confirmed cases:
+
+- NFC: `Cafe` + combining acute -> composed `Café`
+- NFD: composed `Café` -> `Cafe` + combining acute
+- CaseFold: `Straße` -> `strasse`
+
+Expectation probe semantics:
+
+- exact output match: OK
+- transform failure: EXIT_ERROR / finding
+- output mismatch: EXIT_ERROR / finding
+- malformed case file: USAGE
