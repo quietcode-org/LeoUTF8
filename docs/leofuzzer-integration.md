@@ -94,3 +94,39 @@ Invalid corpus:
 LeoUTF8 must reject malformed UTF-8 safely and explicitly.
 
 A malformed input is not a crash. It is a domain-level rejection.
+
+## Transform Probes
+
+LeoUTF8 also provides transform probes for:
+
+- NFC normalization
+- NFD normalization
+- Unicode case folding
+
+Probe source:
+
+    Tests/leofuzz_transform_probe.c
+
+Build target:
+
+    make leofuzz-transform-probes
+
+Full transform check:
+
+    make leofuzz-transform-check
+
+Expected valid-corpus result for each transform:
+
+    runs=5
+    ok=5
+    rejected=0
+    findings=0
+
+Expected invalid-corpus result for each transform:
+
+    runs=5
+    ok=0
+    rejected=5
+    findings=0
+
+Invalid UTF-8 remains a domain-level rejection for transform probes.

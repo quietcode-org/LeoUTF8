@@ -498,3 +498,108 @@ leofuzz-corpus-invalid: leofuzz-validate-probe
 leofuzz-check: leofuzz-corpus-valid leofuzz-corpus-invalid
 
 .PHONY: leofuzz-validate-probe leofuzz-corpus-valid leofuzz-corpus-invalid leofuzz-check
+
+# LeoFuzzer transform probes
+LEOFUZZ_TRANSFORM_SRC = Tests/leofuzz_transform_probe.c
+LEOFUZZ_NFC_BIN = $(BUILD_DIR)/leofuzz_nfc_probe
+LEOFUZZ_NFD_BIN = $(BUILD_DIR)/leofuzz_nfd_probe
+LEOFUZZ_CASEFOLD_BIN = $(BUILD_DIR)/leofuzz_casefold_probe
+
+$(LEOFUZZ_NFC_BIN): $(LEOFUZZ_TRANSFORM_SRC) $(CORE_HDR) $(CORE_LIB)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-DLEOFUZZ_TRANSFORM_NFC \
+		-I $(CORE_INC) \
+		$(LEOFUZZ_TRANSFORM_SRC) \
+		$(CORE_LIB) \
+		-o $(LEOFUZZ_NFC_BIN)
+
+$(LEOFUZZ_NFD_BIN): $(LEOFUZZ_TRANSFORM_SRC) $(CORE_HDR) $(CORE_LIB)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-DLEOFUZZ_TRANSFORM_NFD \
+		-I $(CORE_INC) \
+		$(LEOFUZZ_TRANSFORM_SRC) \
+		$(CORE_LIB) \
+		-o $(LEOFUZZ_NFD_BIN)
+
+$(LEOFUZZ_CASEFOLD_BIN): $(LEOFUZZ_TRANSFORM_SRC) $(CORE_HDR) $(CORE_LIB)
+	$(CC) \
+		$(COMMON_FLAGS) \
+		-std=c99 \
+		-Wall -Wextra -pedantic \
+		-DLEOFUZZ_TRANSFORM_CASEFOLD \
+		-I $(CORE_INC) \
+		$(LEOFUZZ_TRANSFORM_SRC) \
+		$(CORE_LIB) \
+		-o $(LEOFUZZ_CASEFOLD_BIN)
+
+leofuzz-transform-probes: $(LEOFUZZ_NFC_BIN) $(LEOFUZZ_NFD_BIN) $(LEOFUZZ_CASEFOLD_BIN)
+
+leofuzz-nfc-valid: leofuzz-transform-probes
+	test -x $(LEOFUZZ_BIN)
+	rm -rf $(LEOFUZZ_RESULTS_DIR)/nfc-valid
+	$(LEOFUZZ_BIN) --target $(LEOFUZZ_NFC_BIN) --corpus corpus/leofuzz/valid --results $(LEOFUZZ_RESULTS_DIR)/nfc-valid
+	grep 'ok=5' $(LEOFUZZ_RESULTS_DIR)/nfc-valid/summary.txt
+	grep 'rejected=0' $(LEOFUZZ_RESULTS_DIR)/nfc-valid/summary.txt
+	grep 'findings=0' $(LEOFUZZ_RESULTS_DIR)/nfc-valid/summary.txt
+	awk -F '\t' 'NR > 1 { if (NF != 7) exit 1 }' $(LEOFUZZ_RESULTS_DIR)/nfc-valid/runs.tsv
+
+leofuzz-nfc-invalid: leofuzz-transform-probes
+	test -x $(LEOFUZZ_BIN)
+	rm -rf $(LEOFUZZ_RESULTS_DIR)/nfc-invalid
+	$(LEOFUZZ_BIN) --target $(LEOFUZZ_NFC_BIN) --corpus corpus/leofuzz/invalid --results $(LEOFUZZ_RESULTS_DIR)/nfc-invalid
+	grep 'ok=0' $(LEOFUZZ_RESULTS_DIR)/nfc-invalid/summary.txt
+	grep 'rejected=5' $(LEOFUZZ_RESULTS_DIR)/nfc-invalid/summary.txt
+	grep 'findings=0' $(LEOFUZZ_RESULTS_DIR)/nfc-invalid/summary.txt
+	awk -F '\t' 'NR > 1 { if (NF != 7) exit 1 }' $(LEOFUZZ_RESULTS_DIR)/nfc-invalid/runs.tsv
+
+leofuzz-nfd-valid: leofuzz-transform-probes
+	test -x $(LEOFUZZ_BIN)
+	rm -rf $(LEOFUZZ_RESULTS_DIR)/nfd-valid
+	$(LEOFUZZ_BIN) --target $(LEOFUZZ_NFD_BIN) --corpus corpus/leofuzz/valid --results $(LEOFUZZ_RESULTS_DIR)/nfd-valid
+	grep 'ok=5' $(LEOFUZZ_RESULTS_DIR)/nfd-valid/summary.txt
+	grep 'rejected=0' $(LEOFUZZ_RESULTS_DIR)/nfd-valid/summary.txt
+	grep 'findings=0' $(LEOFUZZ_RESULTS_DIR)/nfd-valid/summary.txt
+	awk -F '\t' 'NR > 1 { if (NF != 7) exit 1 }' $(LEOFUZZ_RESULTS_DIR)/nfd-valid/runs.tsv
+
+leofuzz-nfd-invalid: leofuzz-transform-probes
+	test -x $(LEOFUZZ_BIN)
+	rm -rf $(LEOFUZZ_RESULTS_DIR)/nfd-invalid
+	$(LEOFUZZ_BIN) --target $(LEOFUZZ_NFD_BIN) --corpus corpus/leofuzz/invalid --results $(LEOFUZZ_RESULTS_DIR)/nfd-invalid
+	grep 'ok=0' $(LEOFUZZ_RESULTS_DIR)/nfd-invalid/summary.txt
+	grep 'rejected=5' $(LEOFUZZ_RESULTS_DIR)/nfd-invalid/summary.txt
+	grep 'findings=0' $(LEOFUZZ_RESULTS_DIR)/nfd-invalid/summary.txt
+	awk -F '\t' 'NR > 1 { if (NF != 7) exit 1 }' $(LEOFUZZ_RESULTS_DIR)/nfd-invalid/runs.tsv
+
+leofuzz-casefold-valid: leofuzz-transform-probes
+	test -x $(LEOFUZZ_BIN)
+	rm -rf $(LEOFUZZ_RESULTS_DIR)/casefold-valid
+	$(LEOFUZZ_BIN) --target $(LEOFUZZ_CASEFOLD_BIN) --corpus corpus/leofuzz/valid --results $(LEOFUZZ_RESULTS_DIR)/casefold-valid
+	grep 'ok=5' $(LEOFUZZ_RESULTS_DIR)/casefold-valid/summary.txt
+	grep 'rejected=0' $(LEOFUZZ_RESULTS_DIR)/casefold-valid/summary.txt
+	grep 'findings=0' $(LEOFUZZ_RESULTS_DIR)/casefold-valid/summary.txt
+	awk -F '\t' 'NR > 1 { if (NF != 7) exit 1 }' $(LEOFUZZ_RESULTS_DIR)/casefold-valid/runs.tsv
+
+leofuzz-casefold-invalid: leofuzz-transform-probes
+	test -x $(LEOFUZZ_BIN)
+	rm -rf $(LEOFUZZ_RESULTS_DIR)/casefold-invalid
+	$(LEOFUZZ_BIN) --target $(LEOFUZZ_CASEFOLD_BIN) --corpus corpus/leofuzz/invalid --results $(LEOFUZZ_RESULTS_DIR)/casefold-invalid
+	grep 'ok=0' $(LEOFUZZ_RESULTS_DIR)/casefold-invalid/summary.txt
+	grep 'rejected=5' $(LEOFUZZ_RESULTS_DIR)/casefold-invalid/summary.txt
+	grep 'findings=0' $(LEOFUZZ_RESULTS_DIR)/casefold-invalid/summary.txt
+	awk -F '\t' 'NR > 1 { if (NF != 7) exit 1 }' $(LEOFUZZ_RESULTS_DIR)/casefold-invalid/runs.tsv
+
+leofuzz-transform-check: \
+	leofuzz-nfc-valid \
+	leofuzz-nfc-invalid \
+	leofuzz-nfd-valid \
+	leofuzz-nfd-invalid \
+	leofuzz-casefold-valid \
+	leofuzz-casefold-invalid
+
+.PHONY: leofuzz-transform-probes leofuzz-nfc-valid leofuzz-nfc-invalid leofuzz-nfd-valid leofuzz-nfd-invalid leofuzz-casefold-valid leofuzz-casefold-invalid leofuzz-transform-check
