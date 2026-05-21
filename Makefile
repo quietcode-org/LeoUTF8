@@ -482,6 +482,8 @@ leofuzz-corpus-valid: leofuzz-validate-probe
 	rm -rf $(LEOFUZZ_RESULTS_DIR)/valid
 	$(LEOFUZZ_BIN) --target $(LEOFUZZ_VALIDATE_BIN) --corpus corpus/leofuzz/valid --results $(LEOFUZZ_RESULTS_DIR)/valid
 	grep 'findings=0' $(LEOFUZZ_RESULTS_DIR)/valid/summary.txt
+	grep 'ok=5' $(LEOFUZZ_RESULTS_DIR)/valid/summary.txt
+	grep 'rejected=0' $(LEOFUZZ_RESULTS_DIR)/valid/summary.txt
 	awk -F '\t' 'NR > 1 { if (NF != 7) exit 1 }' $(LEOFUZZ_RESULTS_DIR)/valid/runs.tsv
 
 leofuzz-corpus-invalid: leofuzz-validate-probe

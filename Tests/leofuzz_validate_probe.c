@@ -41,8 +41,15 @@ static int ReadFile(const char *path, unsigned char **outBytes, size_t *outLengt
     }
 
     if (fileSize == 0) {
+        buffer = (unsigned char *)malloc(1);
+
+        if (buffer == 0) {
+            fclose(file);
+            return -1;
+        }
+
         fclose(file);
-        *outBytes = 0;
+        *outBytes = buffer;
         *outLength = 0;
         return 0;
     }
